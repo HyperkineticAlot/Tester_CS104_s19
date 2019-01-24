@@ -10,12 +10,11 @@ import java.util.*;
 
 final class TesterLogic {
 
-    /* throws IOException when creating new input files */
+    /* throws IOException when creating new output files */
     @SuppressWarnings("null") //null-checking is performed on inDir and outDir by Tester
-    static ArrayList<String> parseCommand(String c, File inDir, File outDir, PrintStream console)
+    static void parseCommand(String c, File inDir, File outDir, PrintStream console, Map<String, File> commands)
             throws AngleExpressionException, IOException
     {
-        ArrayList<String> commands = new ArrayList<>();
         File[] inFiles = inDir.listFiles();
         File[] outFiles = outDir.listFiles();
 
@@ -52,11 +51,13 @@ final class TesterLogic {
         for(Map.Entry<Integer, File> entry : inKeys.entrySet())
         {
             Integer nextKey = entry.getKey();
-            String nextName = inKeys.get(nextKey).getName();
+            File nextInFile = inKeys.get(nextKey);
+            File nextOutFile = outKeys.get(nextKey);
             //if an output file has already been created, pair the two files and generate a command for the pair
             if(outKeys.containsKey(nextKey)) {
                 try {
-                    commands.add(generateCommand(c, nextName, outKeys.get(nextKey).getName()));
+                    commands.put(generateCommand(c, nextInFile.toPath().toString(),
+                            nextOutFile.toPath().toString()), nextOutFile);
                 } catch (AngleExpressionException e) {
                     console.println(e.getMessage());
                     throw e;
@@ -66,7 +67,7 @@ final class TesterLogic {
             else
             {
                 File file = new File(outDir.getPath() + System.getProperty("file.separator") + "output_"
-                        + nextKey.toString() + (nextName.substring(nextName.length()-4).equals(".txt") ? ".txt" : ""));
+                    + nextKey.toString() + ".txt");
                 try
                 {
                     if(file.createNewFile())
@@ -74,7 +75,8 @@ final class TesterLogic {
                         console.println("File " + file.getName() + " has been created as a paired output file to "
                                 + inKeys.get(nextKey) + ".");
                         try{
-                            commands.add(generateCommand(c, nextName, file.getName()));
+                            commands.put(generateCommand(c, nextInFile.toPath().toString(),
+                                    file.toPath().toString()), file);
                         }
                         catch(AngleExpressionException e)
                         {
@@ -93,8 +95,6 @@ final class TesterLogic {
                 }
             }
         }
-
-        return commands;
     }
 
     private static String generateCommand(String c, String ifile, String ofile)
