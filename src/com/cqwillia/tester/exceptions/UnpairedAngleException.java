@@ -1,6 +1,6 @@
 package com.cqwillia.tester.exceptions;
 
-public class UnpairedAngleException extends Exception
+public class UnpairedAngleException extends AngleExpressionException
 {
     private final static String opMessage = "Unpaired opening angle bracket in command string";
     private final static String clMessage = "Unpaired closing angle bracket in command string";

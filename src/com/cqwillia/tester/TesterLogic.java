@@ -1,48 +1,55 @@
 package com.cqwillia.tester;
 
-import com.cqwillia.tester.exceptions.NestedAngleException;
-import com.cqwillia.tester.exceptions.UnpairedAngleException;
+import com.cqwillia.tester.exceptions.*;
 
-public class TesterLogic {
+public final class TesterLogic {
+
     public static String parseCommand(String c)
     {
-
+        return "";
     }
 
-    private static String generateCommand(String c, String ifile, String ofile)
-            throws NestedAngleException, UnpairedAngleException {
-        String command = "";
+    static String generateCommand(String c, String ifile, String ofile)
+            throws AngleExpressionException {
+        StringBuilder command = new StringBuilder();
 
+        //parse for opening angle brackets
         for (int i = 0; i < c.length(); i++) {
             char curr = c.charAt(i);
-            if (curr != '<') {
-                command += curr;
-                continue;
-            }
+
+            //unpaired closing angle bracket
             if (curr == '>')
                 throw new UnpairedAngleException(UnpairedAngleException.UnpairType.CLOSING);
 
-            String expr = "";
-            i++;
+            //any non angle-bracket character remains unchanged
+            if (curr != '<') {
+                command.append(curr);
+                continue;
+            }
+
+            //generate the expression between angle brackets
+            StringBuilder expr = new StringBuilder();
+            i++; //moves to the character after the opening angle bracket
             try {
+                //traverse the string to find the closing angle bracket
                 for (; c.charAt(i) != '>'; i++) {
                     if (c.charAt(i) == '<')
                         throw new NestedAngleException();
 
-                    expr += c.charAt(i);
+                    expr.append(c.charAt(i));
                 }
             } catch (IndexOutOfBoundsException out) {
                 throw new UnpairedAngleException(UnpairedAngleException.UnpairType.OPENING);
             }
 
-            if(expr.equals("input")) command += ifile;
-            else if(expr.equals("output")) command += ofile;
+            if(expr.toString().equals("input")) command.append(ifile);
+            else if(expr.toString().equals("output")) command.append(ofile);
             else
             {
-
+                throw new InvalidContentsException();
             }
         }
 
-        return command;
+        return command.toString();
     }
 }

@@ -3,7 +3,6 @@ package com.cqwillia.tester;
 import javax.swing.JFrame;
 
 import com.cqwillia.tester.exceptions.NestedAngleException;
-import exceptions.*;
 
 public class Tester
 {

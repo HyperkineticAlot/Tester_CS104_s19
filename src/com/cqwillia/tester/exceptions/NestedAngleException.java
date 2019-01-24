@@ -1,6 +1,6 @@
 package com.cqwillia.tester.exceptions;
 
-public class NestedAngleException extends Exception
+public class NestedAngleException extends AngleExpressionException
 {
     private final static String message = "Nested angle brackets in command string";
 
