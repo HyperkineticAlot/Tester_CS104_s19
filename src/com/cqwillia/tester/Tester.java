@@ -4,6 +4,10 @@ import javax.swing.*;
 
 import com.cqwillia.tester.exceptions.AngleExpressionException;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -119,16 +123,37 @@ public class Tester
     {
         protected JTextArea consoleWindow;
 
-        public TesterInterface()
+        protected TesterInterface()
         {
-            //set default values for tester window, initialise and add console to content pane
+            //set default values for tester window
             super("CS 104 Spring 2018 Test Case Manager v0.0.2");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            consoleWindow = new JTextArea();
-            getContentPane().add(consoleWindow);
             setSize(300, 600);
-            setVisible(true);
             setResizable(false);
+
+            //initialise console text area and add to pane
+            consoleWindow = new JTextArea();
+            consoleWindow.setEditable(false);
+            getContentPane().add(consoleWindow);
+
+            //construct the menuBar and menu items, then add them to the frame
+            JMenuBar menuBar = new JMenuBar();
+            JMenu fileMenu = new JMenu("File");
+            fileMenu.setMnemonic(KeyEvent.VK_F);
+            JMenuItem preferencesItem = new JMenuItem("Preferences");
+            preferencesItem.setMnemonic(KeyEvent.VK_P);
+            preferencesItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, ActionEvent.CTRL_MASK));
+            preferencesItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("Preferences was clicked!");
+                }
+            });
+            fileMenu.add(preferencesItem);
+            menuBar.add(fileMenu);
+            setJMenuBar(menuBar);
+
+            setVisible(true);
         }
     }
 }
