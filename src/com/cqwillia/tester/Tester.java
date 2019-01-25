@@ -15,21 +15,70 @@ import java.util.Set;
 public class Tester
 {
     private TesterInterface gui;
-    private PrintStream console;
     private File testDirectory;
+
+    private BufferedReader reader;
+    private PrintStream console;
 
     public Tester()
     {
-        console = System.out;
         testDirectory = new File("test");
 
+        init();
     }
 
-    public Tester(PrintStream c, String dir)
+    public Tester(String dir)
     {
-        console = c;
         gui = null;
         testDirectory = new File(dir);
+
+        init();
+    }
+
+    private void init()
+    {
+        //initialise the gui
+        gui = new TesterInterface();
+
+        //generate piped input and output streams to handle data flow into console
+        PipedOutputStream out = new PipedOutputStream();
+        console = new PrintStream(out, true);
+        try
+        {
+            PipedInputStream in = new PipedInputStream(out);
+            reader = new BufferedReader(new InputStreamReader(in));
+        } catch(IOException e) { e.printStackTrace(); return; }
+
+        //initialise the console PrintStream to print input to the console JTextArea
+        Runnable consoleUpdater = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                String line;
+
+                try
+                {
+                    line = reader.readLine();
+                    while(line != null)
+                    {
+                        gui.consoleWindow.append(line);
+                        line = reader.readLine();
+                    }
+                } catch(IOException e)
+                {
+                    System.out.println("Input redirection to console threw an IO exception");
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        new Thread(consoleUpdater).start();
+    }
+
+    public void printToConsole(String s)
+    {
+        console.println(s);
     }
 
     public void runTest(String comm, File inDir, File outDir)
@@ -68,6 +117,18 @@ public class Tester
 
     private class TesterInterface extends JFrame
     {
-        protected JTextPane consoleWindow;
+        protected JTextArea consoleWindow;
+
+        public TesterInterface()
+        {
+            //set default values for tester window, initialise and add console to content pane
+            super("CS 104 Spring 2018 Test Case Manager v0.0.2");
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            consoleWindow = new JTextArea();
+            getContentPane().add(consoleWindow);
+            setSize(300, 600);
+            setVisible(true);
+            setResizable(false);
+        }
     }
 }
