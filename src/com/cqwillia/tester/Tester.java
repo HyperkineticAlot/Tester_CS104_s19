@@ -42,6 +42,7 @@ public class Tester
     private static final int I_OUTDIR = 4;
     private static final int I_REFDIR = 5;
     private static final int I_TESTPATH = 6;
+    private static final String PREF_PATH = "default.PREFERENCES";
 
     public Tester()
     {
@@ -62,11 +63,48 @@ public class Tester
     {
         //read from preferences file into preferences arraylist and default preferences arraylist
         defaultPrefs = new ArrayList<>(7);
-        for(int i = 0; i < 7; i++) {
-            defaultPrefs.add("");
+        preferences = new ArrayList<>(7);
+        for(int i = 0; i < 7; i++)
+        {
+            defaultPrefs.set(i, "");
+            preferences.set(i, "");
         }
-
-        preferences = (ArrayList<String>)defaultPrefs.clone();
+        try
+        {
+            BufferedReader prefRead = new BufferedReader(new FileReader(PREF_PATH));
+            String line;
+            while((line = prefRead.readLine()) != null)
+            {
+                String[] split = line.split("=");
+                String[] left = split[0].split(".");
+                switch(left[1])
+                {
+                    case "workingDirectory":
+                        setPref(left[0], split[1], I_WDIR);
+                    case "homeworkNumber":
+                        setPref(left[0], split[1], I_HWNUM);
+                    case "testName":
+                        setPref(left[0], split[1], I_TESTNAME);
+                    case "inputDirectory":
+                        setPref(left[0], split[1], I_INDIR);
+                    case "outputDirectory":
+                        setPref(left[0], split[1], I_OUTDIR);
+                    case "referenceDirectory":
+                        setPref(left[0], split[1], I_REFDIR);
+                    case "testPath":
+                        setPref(left[0], split[1], I_TESTPATH);
+                }
+            }
+        }
+        catch(FileNotFoundException f) { f.printStackTrace(); }
+        catch(IOException e) {}
+        for (int i = 0; i < 7; i++)
+        {
+            if(preferences.get(i).equals(""))
+            {
+                preferences.set(i, defaultPrefs.get(i));
+            }
+        }
 
         //initialise the gui
         try
@@ -327,6 +365,13 @@ public class Tester
         gui.restore(Field.HOMEWORK_NUM, defaultPrefs.get(I_HWNUM));
         gui.restore(Field.TEST_NAME, defaultPrefs.get(I_TESTNAME));
         gui.restore(Field.TEST_PATH, defaultPrefs.get(I_TESTPATH));
+    }
+
+    //helper function - sets preference pref in default or saved preferences based on s
+    private void setPref(String s, String pref, int i)
+    {
+        if(s.equals("default")) defaultPrefs.set(i, pref);
+        else if(s.equals("saved")) preferences.set(i, pref);
     }
 
     private String getField(Field f)

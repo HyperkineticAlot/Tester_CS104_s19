@@ -1,0 +1,14 @@
+default.workingDirectory=..
+default.homeworkNumber=2
+default.testName=split
+default.inputDirectory=input
+default.outputDirectory=output
+default.referenceDirectory=reference
+default.testPath=..
+saved.workingDirectory=
+saved.homeworkNumber=
+saved.testName=
+saved.inputDirectory=
+saved.outputDirectory=
+saved.referenceDirectory=
+saved.testPath=
