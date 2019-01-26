@@ -66,8 +66,8 @@ public class Tester
         preferences = new ArrayList<>(7);
         for(int i = 0; i < 7; i++)
         {
-            defaultPrefs.set(i, "");
-            preferences.set(i, "");
+            defaultPrefs.add("");
+            preferences.add("");
         }
         try
         {
@@ -76,7 +76,8 @@ public class Tester
             while((line = prefRead.readLine()) != null)
             {
                 String[] split = line.split("=");
-                String[] left = split[0].split(".");
+                if(split.length == 1) continue;
+                String[] left = split[0].split("\\.");
                 switch(left[1])
                 {
                     case "workingDirectory":
@@ -509,16 +510,16 @@ public class Tester
             prefPanel.add(testPanel, testConstraints);
 
             //initialise "directory panels" for paths to input, output, reference directories, and test script path
-            inDir = new JTextField(getField(Field.INPUT_DIR), 15);
+            inDir = new JTextField(getField(Field.INPUT_DIR), 20);
             makeDirectoryPanel(prefPanel, inDir, "Input directory:", 0, 2);
 
-            outDir = new JTextField(getField(Field.OUTPUT_DIR), 15);
+            outDir = new JTextField(getField(Field.OUTPUT_DIR), 20);
             makeDirectoryPanel(prefPanel, outDir, "Output directory:", 1, 2);
 
-            refDir = new JTextField(getField(Field.REFERENCE_DIR), 15);
+            refDir = new JTextField(getField(Field.REFERENCE_DIR), 20);
             makeDirectoryPanel(prefPanel, refDir, "Reference directory:", 0, 3);
 
-            testPath = new JTextField(getField(Field.TEST_PATH), 15);
+            testPath = new JTextField(getField(Field.TEST_PATH), 20);
             makeDirectoryPanel(prefPanel, testPath, "Test script path:", 1, 3);
 
             //initialise buttons and button panel
