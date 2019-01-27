@@ -24,8 +24,8 @@ public class Tester
 {
     private TesterInterface gui;
     private File testDirectory;
-    private ArrayList<String> preferences;
-    private ArrayList<String> defaultPrefs;
+    private String[] preferences;
+    private String[] defaultPrefs;
 
     private BufferedReader reader;
     private PrintStream console;
@@ -43,7 +43,7 @@ public class Tester
     private static final int I_OUTDIR = 4;
     private static final int I_REFDIR = 5;
     private static final int I_TESTPATH = 6;
-    private static final String PREF_PATH = "default.PREFERENCES";
+    private static final String PREF_PATH = "d.PREFERENCES";
 
     public Tester()
     {
@@ -63,12 +63,12 @@ public class Tester
     private void init()
     {
         //read from preferences file into preferences arraylist and default preferences arraylist
-        defaultPrefs = new ArrayList<>(7);
-        preferences = new ArrayList<>(7);
+        defaultPrefs = new String[7];
+        preferences = new String[7];
         for(int i = 0; i < 7; i++)
         {
-            defaultPrefs.add("");
-            preferences.add("");
+            defaultPrefs[i] = "";
+            preferences[i] = "";
         }
         try
         {
@@ -83,18 +83,25 @@ public class Tester
                 {
                     case "workingDirectory":
                         setPref(left[0], split[1], I_WDIR);
+                        break;
                     case "homeworkNumber":
                         setPref(left[0], split[1], I_HWNUM);
+                        break;
                     case "testName":
                         setPref(left[0], split[1], I_TESTNAME);
+                        break;
                     case "inputDirectory":
                         setPref(left[0], split[1], I_INDIR);
+                        break;
                     case "outputDirectory":
                         setPref(left[0], split[1], I_OUTDIR);
+                        break;
                     case "referenceDirectory":
                         setPref(left[0], split[1], I_REFDIR);
+                        break;
                     case "testPath":
                         setPref(left[0], split[1], I_TESTPATH);
+                        break;
                 }
             }
         }
@@ -102,9 +109,9 @@ public class Tester
         catch(IOException e) {}
         for (int i = 0; i < 7; i++)
         {
-            if(preferences.get(i).equals(""))
+            if(preferences[i].equals(""))
             {
-                preferences.set(i, defaultPrefs.get(i));
+                preferences[i] = defaultPrefs[i];
             }
         }
 
@@ -121,7 +128,6 @@ public class Tester
         gui.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
                 deinit();
             }
         });
@@ -171,24 +177,24 @@ public class Tester
     private void deinit()
     {
         //write preferences to .preferences file
-        PrintWriter out;
-        try
+        try(BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(PREF_PATH), "utf-8")))
         {
-            out = new PrintWriter(new File(PREF_PATH));
+            for(int i = 0; i < 7; i++)
+            {
+                writePref("default", i, defaultPrefs[i], out);
+            }
+            for(int i = 0; i < 7; i++)
+            {
+                writePref("saved", i, preferences[i], out);
+            }
+
         } catch(FileNotFoundException f)
         {
             console.println("Preference file missing or misplaced.");
             f.printStackTrace(console);
-            return;
-        }
-
-        for(int i = 0; i < 7; i++)
+        } catch(Exception e)
         {
-            writePref("default", i, defaultPrefs.get(i), out);
-        }
-        for(int i = 0; i < 7; i++)
-        {
-            writePref("saved", i, preferences.get(i), out);
+            System.out.println("Error writing preferences to preference file.");
         }
     }
 
@@ -209,70 +215,77 @@ public class Tester
         switch(f)
         {
             case WORKING_DIRECTORY:
-                if (preferences.get(I_WDIR).equals(s)) return;
+                if (preferences[I_WDIR].equals(s)) return;
                 if(Files.exists(file.toPath()))
                 {
                     try {
                         String absolute = file.getCanonicalPath();
-                        preferences.set(I_WDIR, absolute);
+                        preferences[I_WDIR] = absolute;
                         console.println("Working directory set to " + absolute + ".");
                     } catch (IOException e) {
                         console.println("ERROR: Failed to obtain canonical path for provided working directory.");
                         e.printStackTrace(console);
-                        gui.restore(f, preferences.get(I_WDIR));
+                        gui.restore(f, preferences[I_WDIR]);
                     }
                 }
                 else
                 {
                     console.println("WARNING: Provided working directory " + s + " does not exist.");
-                    gui.restore(f, preferences.get(I_WDIR));
+                    gui.restore(f, preferences[I_WDIR]);
                 }
-                System.out.println(preferences.get(0));
+                break;
 
             case HOMEWORK_NUM:
-                preferences.set(I_HWNUM, s);
+                if(s.equals(preferences[I_HWNUM])) return;
+                preferences[I_HWNUM] = s;
+                console.println("Preparing to run test cases for " + s + ".");
+                break;
 
             case TEST_NAME:
-                preferences.set(I_TESTNAME, s);
+                if(s.equals(preferences[I_TESTNAME])) return;
+                preferences[I_TESTNAME] = s;
+                console.println("Preparing to run test cases for trial "+s+" from "+preferences[I_HWNUM]+".");
+                break;
 
             case INPUT_DIR:
-                if (preferences.get(I_INDIR).equals(s)) return;
+                if (preferences[I_INDIR].equals(s)) return;
                 if(Files.exists(file.toPath()))
                 {
                     try {
                         String absolute = file.getCanonicalPath();
-                        preferences.set(I_INDIR, absolute);
+                        preferences[I_INDIR] = absolute;
                         console.println("Input directory set to " + absolute + ".");
                     } catch(IOException e) {
                         console.println("ERROR: Failed to obtain canonical path for provided input directory.");
                         e.printStackTrace(console);
-                        gui.restore(f, preferences.get(I_INDIR));
+                        gui.restore(f, preferences[I_INDIR]);
                     }
                 }
                 //also allow paths given relative to the working directory
                 else
                 {
-                    Path fromWkDir = Paths.get(preferences.get(I_WDIR)).resolve(file.toPath());
+                    Path fromWkDir = Paths.get(preferences[I_WDIR]).resolve(file.toPath());
                     if(Files.exists(fromWkDir))
                     {
                         String absolute = fromWkDir.toAbsolutePath().toString();
-                        preferences.set(I_INDIR, absolute);
+                        preferences[I_INDIR] = absolute;
                         console.println("Input directory set to " + absolute + ".");
                     }
                     else
                     {
                         console.println("WARNING: Provided input directory " + s + " could not be resolved.");
-                        gui.restore(f, preferences.get(I_INDIR));
+                        gui.restore(f, preferences[I_INDIR]);
                     }
                 }
+                break;
 
             case OUTPUT_DIR:
-                if (preferences.get(I_OUTDIR).equals(s)) return;
+                if (preferences[I_OUTDIR].equals(s)) return;
                 if(Files.exists(file.toPath()))
                 {
                     try {
                         String absolute = file.getCanonicalPath();
-                        preferences.set(I_OUTDIR, absolute);
+                        preferences[I_OUTDIR] = absolute;
                         console.println("Output directory set to " + absolute + ".");
                     } catch(IOException e) {
                         console.println("ERROR: Failed to obtain canonical path for provided output directory.");
@@ -282,11 +295,11 @@ public class Tester
                 //also allow paths given relative to the working directory
                 else
                 {
-                    Path fromWkDir = Paths.get(preferences.get(I_WDIR)).resolve(file.toPath());
+                    Path fromWkDir = Paths.get(preferences[I_WDIR]).resolve(file.toPath());
                     if(Files.exists(fromWkDir))
                     {
                         String absolute = fromWkDir.toAbsolutePath().toString();
-                        preferences.set(I_OUTDIR, absolute);
+                        preferences[I_OUTDIR] = absolute;
                         console.println("Output directory set to " + absolute + ".");
                     }
                     //if the path for output directory cannot be resolved, create a new directory for output
@@ -298,132 +311,143 @@ public class Tester
                         try
                         {
                             String absolute = file.getCanonicalPath();
-                            preferences.set(I_OUTDIR, absolute);
+                            preferences[I_OUTDIR] = absolute;
                             console.println("Output directory set to " + absolute + ".");
                         } catch(IOException e)
                         {
                             console.println("WARNING: Failed to get canonical path for newly created output directory.");
                             e.printStackTrace(console);
-                            gui.restore(f, preferences.get(I_OUTDIR));
+                            gui.restore(f, preferences[I_OUTDIR]);
                         }
                     }
                 }
+                break;
 
             case REFERENCE_DIR:
-                if (preferences.get(I_REFDIR).equals(s)) return;
+                if (preferences[I_REFDIR].equals(s)) return;
                 if(Files.exists(file.toPath()))
                 {
                     try {
                         String absolute = file.getCanonicalPath();
-                        preferences.set(I_REFDIR, absolute);
+                        preferences[I_REFDIR] = absolute;
                         console.println("Reference directory set to " + absolute + ".");
                     } catch(IOException e) {
                         console.println("ERROR: Failed to obtain canonical path for provided reference directory.");
                         e.printStackTrace(console);
-                        gui.restore(f, preferences.get(I_REFDIR));
+                        gui.restore(f, preferences[I_REFDIR]);
                     }
                 }
                 //also allow paths given relative to the working directory
                 else
                 {
-                    Path fromWkDir = Paths.get(preferences.get(I_WDIR)).resolve(file.toPath());
+                    Path fromWkDir = Paths.get(preferences[I_WDIR]).resolve(file.toPath());
                     if(Files.exists(fromWkDir))
                     {
                         String absolute = fromWkDir.toAbsolutePath().toString();
-                        preferences.set(I_REFDIR, absolute);
+                        preferences[I_REFDIR] = absolute;
                         console.println("Reference directory set to " + absolute + ".");
                     }
                     else
                     {
                         console.println("WARNING: Provided reference directory " + s + " could not be resolved.");
-                        gui.restore(f, preferences.get(I_REFDIR));
+                        gui.restore(f, preferences[I_REFDIR]);
                     }
                 }
+                break;
 
             case TEST_PATH:
-                if (preferences.get(I_TESTPATH).equals(s)) return;
+                if (preferences[I_TESTPATH].equals(s)) return;
                 if(Files.exists(file.toPath()))
                 {
                     try {
                         String absolute = file.getCanonicalPath();
-                        preferences.set(I_TESTPATH, absolute);
+                        preferences[I_TESTPATH] = absolute;
                         console.println("Test script path set to " + absolute + ".");
                     } catch(IOException e) {
                         console.println("ERROR: Failed to obtain canonical path for provided test script.");
                         e.printStackTrace(console);
-                        gui.restore(f, preferences.get(I_TESTPATH));
+                        gui.restore(f, preferences[I_TESTPATH]);
                     }
                 }
                 //also allow paths given relative to the working directory
                 else
                 {
-                    Path fromWkDir = Paths.get(preferences.get(I_WDIR)).resolve(file.toPath());
+                    Path fromWkDir = Paths.get(preferences[I_WDIR]).resolve(file.toPath());
                     if(Files.exists(fromWkDir))
                     {
                         String absolute = fromWkDir.toAbsolutePath().toString();
-                        preferences.set(I_TESTPATH, absolute);
+                        preferences[I_TESTPATH] = absolute;
                         console.println("Test script path set to " + absolute + ".");
                     }
                     else
                     {
                         console.println("WARNING: Provided test script path " + s + " could not be resolved.");
-                        gui.restore(f, preferences.get(I_TESTPATH));
+                        gui.restore(f, preferences[I_TESTPATH]);
                     }
                 }
+                break;
         }
     }
 
     private void restoreAllFields()
     {
-        gui.restore(Field.WORKING_DIRECTORY, preferences.get(I_WDIR));
-        gui.restore(Field.INPUT_DIR, preferences.get(I_INDIR));
-        gui.restore(Field.OUTPUT_DIR, preferences.get(I_OUTDIR));
-        gui.restore(Field.REFERENCE_DIR, preferences.get(I_REFDIR));
-        gui.restore(Field.HOMEWORK_NUM, preferences.get(I_HWNUM));
-        gui.restore(Field.TEST_NAME, preferences.get(I_TESTNAME));
-        gui.restore(Field.TEST_PATH, preferences.get(I_TESTPATH));
+        gui.restore(Field.WORKING_DIRECTORY, preferences[I_WDIR]);
+        gui.restore(Field.INPUT_DIR, preferences[I_INDIR]);
+        gui.restore(Field.OUTPUT_DIR, preferences[I_OUTDIR]);
+        gui.restore(Field.REFERENCE_DIR, preferences[I_REFDIR]);
+        gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
+        gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
+        gui.restore(Field.TEST_PATH, preferences[I_TESTPATH]);
     }
 
     private void restoreAllDefaults()
     {
-        gui.restore(Field.WORKING_DIRECTORY, defaultPrefs.get(I_WDIR));
-        gui.restore(Field.INPUT_DIR, defaultPrefs.get(I_INDIR));
-        gui.restore(Field.OUTPUT_DIR, defaultPrefs.get(I_OUTDIR));
-        gui.restore(Field.REFERENCE_DIR, defaultPrefs.get(I_REFDIR));
-        gui.restore(Field.HOMEWORK_NUM, defaultPrefs.get(I_HWNUM));
-        gui.restore(Field.TEST_NAME, defaultPrefs.get(I_TESTNAME));
-        gui.restore(Field.TEST_PATH, defaultPrefs.get(I_TESTPATH));
+        gui.restore(Field.WORKING_DIRECTORY, defaultPrefs[I_WDIR]);
+        gui.restore(Field.INPUT_DIR, defaultPrefs[I_INDIR]);
+        gui.restore(Field.OUTPUT_DIR, defaultPrefs[I_OUTDIR]);
+        gui.restore(Field.REFERENCE_DIR, defaultPrefs[I_REFDIR]);
+        gui.restore(Field.HOMEWORK_NUM, defaultPrefs[I_HWNUM]);
+        gui.restore(Field.TEST_NAME, defaultPrefs[I_TESTNAME]);
+        gui.restore(Field.TEST_PATH, defaultPrefs[I_TESTPATH]);
     }
 
     //helper function - sets preference pref in default or saved preferences based on s
     private void setPref(String s, String pref, int i)
     {
-        if(s.equals("default")) defaultPrefs.set(i, pref);
-        else if(s.equals("saved")) preferences.set(i, pref);
+        if(s.equals("default")) defaultPrefs[i] = pref;
+        else if(s.equals("saved")) preferences[i] = pref;
     }
 
-    private void writePref(String prefix, int i, String value, PrintWriter out)
+    private void writePref(String prefix, int i, String value, BufferedWriter out) throws IOException
     {
         String pref = prefix + ".";
         switch(i)
         {
             case I_WDIR:
                 pref += "workingDirectory=";
+                break;
             case I_HWNUM:
                 pref += "homeworkNumber=";
+                break;
             case I_TESTNAME:
                 pref += "testName=";
+                break;
             case I_INDIR:
                 pref += "inputDirectory=";
+                break;
             case I_OUTDIR:
                 pref += "outputDirectory=";
+                break;
             case I_REFDIR:
                 pref += "referenceDirectory=";
+                break;
             case I_TESTPATH:
                 pref += "testPath=";
+                break;
         }
         pref += value;
-        out.println(pref);
+        out.write(pref);
+        out.newLine();
     }
 
     private String getField(Field f)
@@ -431,19 +455,19 @@ public class Tester
         switch(f)
         {
             case WORKING_DIRECTORY:
-                return preferences.get(I_WDIR);
+                return preferences[I_WDIR];
             case HOMEWORK_NUM:
-                return preferences.get(I_HWNUM);
+                return preferences[I_HWNUM];
             case TEST_NAME:
-                return preferences.get(I_TESTNAME);
+                return preferences[I_TESTNAME];
             case INPUT_DIR:
-                return preferences.get(I_INDIR);
+                return preferences[I_INDIR];
             case OUTPUT_DIR:
-                return preferences.get(I_OUTDIR);
+                return preferences[I_OUTDIR];
             case REFERENCE_DIR:
-                return preferences.get(I_REFDIR);
+                return preferences[I_REFDIR];
             case TEST_PATH:
-                return preferences.get(I_TESTPATH);
+                return preferences[I_TESTPATH];
         }
 
         return null;
@@ -625,15 +649,25 @@ public class Tester
             {
                 case WORKING_DIRECTORY:
                     workDir.setText(s);
+                    break;
                 case INPUT_DIR:
                     inDir.setText(s);
+                    break;
                 case OUTPUT_DIR:
                     outDir.setText(s);
+                    break;
                 case REFERENCE_DIR:
                     refDir.setText(s);
+                    break;
                 case TEST_PATH:
                     testPath.setText(s);
+                    break;
             }
+        }
+
+        protected void restoreAll(String[] prefs)
+        {
+
         }
 
         private void setConstraints(GridBagConstraints c, int x, int y)
