@@ -3,6 +3,7 @@ package com.cqwillia.tester;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.text.DefaultCaret;
 
 import com.cqwillia.tester.exceptions.AngleExpressionException;
 
@@ -140,30 +141,55 @@ public class Tester
             @Override
             public void run()
             {
-                String line;
+                while(!Thread.interrupted())
+                {
+                    printLine(reader);
+                }
+            }
 
+            private void printLine(BufferedReader out)
+            {
                 try
                 {
-                    line = reader.readLine();
-                    while(line != null)
-                    {
-                        gui.consoleWindow.append(line);
-                        line = reader.readLine();
-                    }
-                } catch(IOException e)
+                    gui.consoleWindow.append(out.readLine());
+                    gui.consoleWindow.append("\n");
+                } catch(Exception e)
                 {
-                    /*System.out.println("Input redirection to console threw an IO exception");
-                    e.printStackTrace();*/
+                    try
+                    {
+                        Thread.sleep(100);
+                    } catch (InterruptedException i) { i.printStackTrace(); }
                 }
             }
         };
 
         new Thread(consoleUpdater).start();
+
+        console.println("Window initialisation complete.");
     }
 
     private void deinit()
     {
         //write preferences to .preferences file
+        PrintWriter out;
+        try
+        {
+            out = new PrintWriter(new File(PREF_PATH));
+        } catch(FileNotFoundException f)
+        {
+            console.println("Preference file missing or misplaced.");
+            f.printStackTrace(console);
+            return;
+        }
+
+        for(int i = 0; i < 7; i++)
+        {
+            writePref("default", i, defaultPrefs.get(i), out);
+        }
+        for(int i = 0; i < 7; i++)
+        {
+            writePref("saved", i, preferences.get(i), out);
+        }
     }
 
     public void printToConsole(String s)
@@ -201,6 +227,7 @@ public class Tester
                     console.println("WARNING: Provided working directory " + s + " does not exist.");
                     gui.restore(f, preferences.get(I_WDIR));
                 }
+                System.out.println(preferences.get(0));
 
             case HOMEWORK_NUM:
                 preferences.set(I_HWNUM, s);
@@ -375,6 +402,30 @@ public class Tester
         else if(s.equals("saved")) preferences.set(i, pref);
     }
 
+    private void writePref(String prefix, int i, String value, PrintWriter out)
+    {
+        String pref = prefix + ".";
+        switch(i)
+        {
+            case I_WDIR:
+                pref += "workingDirectory=";
+            case I_HWNUM:
+                pref += "homeworkNumber=";
+            case I_TESTNAME:
+                pref += "testName=";
+            case I_INDIR:
+                pref += "inputDirectory=";
+            case I_OUTDIR:
+                pref += "outputDirectory=";
+            case I_REFDIR:
+                pref += "referenceDirectory=";
+            case I_TESTPATH:
+                pref += "testPath=";
+        }
+        pref += value;
+        out.println(pref);
+    }
+
     private String getField(Field f)
     {
         switch(f)
@@ -452,7 +503,10 @@ public class Tester
             //initialise console text area and add to pane
             consoleWindow = new JTextArea();
             consoleWindow.setEditable(false);
-            getContentPane().add(consoleWindow);
+            JScrollPane scroll = new JScrollPane(consoleWindow);
+            getContentPane().add(scroll);
+            DefaultCaret caret = (DefaultCaret) consoleWindow.getCaret();
+            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
             /*//construct the menuBar and menu items, then add them to the frame
             JMenuBar menuBar = new JMenuBar();
