@@ -560,6 +560,8 @@ public class Tester
                 }
                 fileOut.close();
             }
+
+            TesterLogic.compareResults(outDir, new File(preferences[I_REFDIR]), console);
         }
         catch(AngleExpressionException a)
         {
