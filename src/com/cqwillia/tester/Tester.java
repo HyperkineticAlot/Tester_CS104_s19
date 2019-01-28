@@ -487,6 +487,11 @@ public class Tester
 
     private void defaultCommand()
     {
+        if(preferences[I_TESTPATH].length() < 4)
+        {
+            System.out.println("Preferences initialised incorrectly. Starting command will not include test script.");
+            return;
+        }
         try
         {
             command = "valgrind --tool=memcheck --leak-check=yes ./";
