@@ -212,14 +212,26 @@ final class TesterLogic {
                 continue;
             }
 
+            int refLines = 0;
+            int outLines = 0;
+            boolean correct = true;
             try
             {
                 String nextRef;
-                boolean correct = true;
                 while((nextRef = readRef.readLine()) != null)
                 {
                     if(!nextRef.equals(readOut.readLine())) correct = false;
+                    if(!nextRef.isEmpty()) refLines++;
                 }
+            } catch(IOException e) {}
+            try
+            {
+                String nextOut;
+                while((nextOut = readOut.readLine()) != null)
+                {
+                    if(!nextOut.isEmpty()) outLines++;
+                }
+                if(outLines != refLines) correct = false;
 
                 String result = "Trial number " + i.toString() + (correct ? "succeeded" : "failed") + " after comparison" +
                         " between files " + outKeys.get(i) + " and " + refKeys.get(i);
