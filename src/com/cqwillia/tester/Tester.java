@@ -169,6 +169,18 @@ public class Tester
 
         new Thread(consoleUpdater).start();
 
+        try
+        {
+            preferences[I_WDIR] = new File(preferences[I_WDIR]).getCanonicalPath();
+            preferences[I_INDIR] = new File(preferences[I_INDIR]).getCanonicalPath();
+            preferences[I_OUTDIR] = new File(preferences[I_OUTDIR]).getCanonicalPath();
+            preferences[I_REFDIR] = new File(preferences[I_REFDIR]).getCanonicalPath();
+            preferences[I_TESTPATH] = new File(preferences[I_TESTPATH]).getCanonicalPath();
+        } catch(IOException e)
+        {
+            console.println("WARNING: One or more paths in preferences file cannot be canonized.");
+        }
+
         console.println("Window initialisation complete.");
     }
 
