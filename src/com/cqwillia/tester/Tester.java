@@ -545,6 +545,7 @@ public class Tester
                     fileOut.write(consoleLine);
                     fileOut.newLine();
                 }
+                fileOut.close();
             }
         }
         catch(AngleExpressionException a)
