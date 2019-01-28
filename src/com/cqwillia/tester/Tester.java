@@ -535,10 +535,16 @@ public class Tester
                 builder.directory(new File(preferences[I_WDIR]));
                 console.println("Conducting test " + c);
                 Process p = builder.start();
-                byte[] consoleOutput = new byte[256];
-                p.getInputStream().read(consoleOutput);
+                BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
                 console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
-                Files.write(parsed.get(c).toPath(), consoleOutput);
+                BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
+                String consoleLine;
+                while((consoleLine = consoleIn.readLine()) != null)
+                {
+                    fileOut.write(consoleLine);
+                    fileOut.newLine();
+                }
             }
         }
         catch(AngleExpressionException a)
