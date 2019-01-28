@@ -13,27 +13,74 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Cameron Williams
+ * @version 0.0.2
+ * @since 0.0.1
+ *
+ * The Tester class encapsulates one instance of a test case tester,
+ * connecting the logic functionality contained in {@link TesterLogic} and
+ * the interface functionality in the inner private class {@link TesterInterface}.
+ * One <code>Tester</code> is intended to be instantiated per run of the
+ * testing program.
+ */
 public class Tester
 {
+
+    /**
+     * <code>TesterInterface</code> object holding the user interface for
+     * this <code>Tester</code> instance.
+     */
     private TesterInterface gui;
+
+    /**
+     * Each element of <code>preferences</code> stores a different internal preference,
+     * each of which is specified by the <code>Field</code> enum and subsequent
+     * static <code>int</code>s.
+     */
     private String[] preferences;
+
+    /**
+     * Loads default preferences from the preferences file at <code>PREF_PATH</code>,
+     * "d.preferences." By usual functionality, these preferences cannot be changed
+     * through the interface, only by manually editing the file.
+     */
     private String[] defaultPrefs;
 
+    /**
+     * Holds a reference to an instance of an anonymous <code>PrintStream</code>
+     * subclass which prints to the topmost text area of <code>gui</code> when its
+     * <code>println</code> method is invoked.
+     */
     private PrintStream console;
+
+    /**
+     * Stores the command template that will be processed and executed to begin
+     * the running of test cases.
+     */
     private String command;
 
+    /**
+     * Field is responsible for communication between <code>Tester</code> and
+     * <code>TesterInterface</code> as to which field of Tester's preferences is
+     * being edited or accessed by various functions.
+     */
     public enum Field
     {
         WORKING_DIRECTORY, HOMEWORK_NUM, TEST_NAME,
         INPUT_DIR, OUTPUT_DIR, REFERENCE_DIR, TEST_PATH
     }
 
+    /**
+     * Each of the following <code>static final</code> fields holds the index
+     * in <code>preferences</code> of a specific field. For example,
+     * <code>I_TESTNAME</code> stores the index of the test name string within
+     * <code>preferences</code>.
+     */
     private static final int I_WDIR = 0;
     private static final int I_HWNUM = 1;
     private static final int I_TESTNAME = 2;
@@ -41,19 +88,30 @@ public class Tester
     private static final int I_OUTDIR = 4;
     private static final int I_REFDIR = 5;
     private static final int I_TESTPATH = 6;
+
+    /**
+     * These two <code>static final</code> fields store the default file names of
+     * the file used to load and store preferences at the beginning and end of program
+     * execution and the session log file to which the console prints all output.
+     */
     private static final String PREF_PATH = "d.PREFERENCES";
     private static final String LOG_PATH = "session.log";
 
+    /**
+     * Sole constructor. <code>Tester</code> objects require no constructor input,
+     * as all objects of this class are intended to be functionally identical.
+     */
     public Tester()
     {
+        //initialise variable and call initialisation method for gui and connections
+        defaultPrefs = new String[7];
+        preferences = new String[7];
         init();
     }
 
     private void init()
     {
         //read from preferences file into preferences arraylist and default preferences arraylist
-        defaultPrefs = new String[7];
-        preferences = new String[7];
         for(int i = 0; i < 7; i++)
         {
             defaultPrefs[i] = "";
@@ -540,6 +598,7 @@ public class Tester
         {
             Map<String, File> parsed = new HashMap<>();
             TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
+            if(parsed == null) return;
             Set<String> commands = parsed.keySet();
             for(String c : commands)
             {

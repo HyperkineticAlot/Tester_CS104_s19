@@ -17,6 +17,16 @@ final class TesterLogic {
     {
         File[] inFiles = inDir.listFiles();
         File[] outFiles = outDir.listFiles();
+        if(inFiles == null)
+        {
+            console.println("ERROR: Given input directory " + inDir.getName() + " is empty.");
+            commands = null;
+            return;
+        }
+        if(outFiles == null)
+        {
+            outFiles = new File[0];
+        }
 
         //define new map subclasses to issue warnings when filenames with duplicate numbers are added
         Map<Integer, File> inKeys = new HashMap<Integer, File>()
