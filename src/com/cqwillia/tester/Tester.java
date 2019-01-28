@@ -18,17 +18,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Flow;
 
 public class Tester
 {
     private TesterInterface gui;
-    private File testDirectory;
     private String[] preferences;
     private String[] defaultPrefs;
 
     private BufferedReader reader;
     private PrintStream console;
+    private String command;
 
     public enum Field
     {
@@ -47,15 +46,12 @@ public class Tester
 
     public Tester()
     {
-        testDirectory = new File("test");
-
         init();
     }
 
     public Tester(String dir)
     {
         gui = null;
-        testDirectory = new File(dir);
 
         init();
     }
@@ -132,6 +128,8 @@ public class Tester
             }
         });
 
+        defaultCommand();
+
         //generate piped input and output streams to handle data flow into console
         PipedOutputStream out = new PipedOutputStream();
         console = new PrintStream(out, true);
@@ -187,7 +185,6 @@ public class Tester
             {
                 writePref("saved", i, preferences[i], out);
             }
-
         } catch(FileNotFoundException f)
         {
             console.println("Preference file missing or misplaced.");
@@ -196,6 +193,11 @@ public class Tester
         {
             System.out.println("Error writing preferences to preference file.");
         }
+
+        try
+        {
+            reader.close();
+        } catch(IOException e) { e.printStackTrace(); }
     }
 
     public void printToConsole(String s)
@@ -203,8 +205,13 @@ public class Tester
         console.println(s);
     }
 
-    public void runTest(String comm, File inDir, File outDir)
+    public void runTest(String comm)
     {
+        command = comm;
+
+        File inDir = new File(preferences[I_INDIR]);
+        File outDir = new File(preferences[I_OUTDIR]);
+
         runCommands(comm, inDir, outDir);
     }
 
@@ -357,6 +364,11 @@ public class Tester
 
             case TEST_PATH:
                 if (preferences[I_TESTPATH].equals(s)) return;
+                if(!s.substring(s.length()-4).equals(".cpp"))
+                {
+                    console.println("Test script path must end in \".cpp\".");
+                    return;
+                }
                 if(Files.exists(file.toPath()))
                 {
                     try {
@@ -473,18 +485,36 @@ public class Tester
         return null;
     }
 
+    private void defaultCommand()
+    {
+        try
+        {
+            command = "valgrind --tool=memcheck --leak-check=yes ./";
+            command += Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
+            command += " <input>";
+            gui.setCommand(command);
+        } catch(IllegalArgumentException e)
+        {
+            System.out.println("Test script path could not be relativised against working directory.");
+            command = "valgrind --tool=memcheck --leak-check=yes ./";
+            command += preferences[I_TESTPATH];
+            command += " <input>";
+            gui.setCommand(command);
+        }
+    }
+
     private void runCommands(String comm, File inDir, File outDir)
     {
         try
         {
             Map<String, File> parsed = new HashMap<>();
-            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed);
+            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
             Set<String> commands = parsed.keySet();
             for(String c : commands)
             {
                 String[] arguments = c.split(" ");
                 ProcessBuilder builder = new ProcessBuilder(arguments);
-                //builder.directory(testDirectory);
+                builder.directory(new File(preferences[I_WDIR]));
                 Process p = builder.start();
                 byte[] consoleOutput = new byte[256];
                 p.getInputStream().read(consoleOutput);
@@ -515,6 +545,8 @@ public class Tester
         private JComboBox<String> hwNum;
         private JComboBox<String> testName;
 
+        private JTextField commandField;
+
         protected TesterInterface()
         {
             //set default values for tester window
@@ -522,13 +554,18 @@ public class Tester
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setMinimumSize(new Dimension(800, 600));
             setResizable(false);
-            setLayout(new GridLayout(3, 1));
+            GridBagLayout layout = new GridBagLayout();
+            layout.rowHeights = new int[]{ 300, 300, 100 };
+            setLayout(layout);
 
             //initialise console text area and add to pane
             consoleWindow = new JTextArea();
             consoleWindow.setEditable(false);
             JScrollPane scroll = new JScrollPane(consoleWindow);
-            getContentPane().add(scroll);
+            GridBagConstraints scrollConstraints = new GridBagConstraints();
+            scrollConstraints.fill = GridBagConstraints.BOTH;
+            scrollConstraints.weightx = scrollConstraints.weighty = 1;
+            getContentPane().add(scroll, scrollConstraints);
             DefaultCaret caret = (DefaultCaret) consoleWindow.getCaret();
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
@@ -638,7 +675,46 @@ public class Tester
             setConstraints(buttonConstraints, 0, 4);
             prefPanel.add(buttonPanel, buttonConstraints);
 
-            getContentPane().add(prefPanel);
+            GridBagConstraints prefConstraints = new GridBagConstraints();
+            prefConstraints.gridx = 0;
+            prefConstraints.gridy = 1;
+            prefConstraints.fill = GridBagConstraints.BOTH;
+            prefConstraints.weightx = prefConstraints.weighty = 1;
+            getContentPane().add(prefPanel, prefConstraints);
+
+            JPanel execPanel = new JPanel();
+            commandField = new JTextField(35);
+            execPanel.setLayout(new BorderLayout());
+            execPanel.add(new JLabel("Command:"), BorderLayout.NORTH);
+            execPanel.add(commandField, BorderLayout.CENTER);
+            JPanel execButPanel = new JPanel();
+            JButton defCommand = new JButton("Default command");
+            JButton saveCommand = new JButton("Save and run");
+            defCommand.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    defaultCommand();
+                }
+            });
+            saveCommand.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    runTest(commandField.getText());
+                }
+            });
+            execButPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            execButPanel.add(defCommand);
+            execButPanel.add(saveCommand);
+            execPanel.add(execButPanel, BorderLayout.SOUTH);
+
+            GridBagConstraints execConstraints = new GridBagConstraints();
+            execConstraints.gridx = 0;
+            execConstraints.gridy = 2;
+            execConstraints.fill = GridBagConstraints.HORIZONTAL;
+            execConstraints.insets = new Insets(0, 20, 0, 20);
+            execConstraints.weightx = 1;
+            getContentPane().add(execPanel, execConstraints);
 
             setVisible(true);
         }
@@ -665,9 +741,9 @@ public class Tester
             }
         }
 
-        protected void restoreAll(String[] prefs)
+        protected void setCommand(String s)
         {
-
+            commandField.setText(s);
         }
 
         private void setConstraints(GridBagConstraints c, int x, int y)

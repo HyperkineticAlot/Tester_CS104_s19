@@ -2,17 +2,17 @@ package com.cqwillia.tester;
 
 import com.cqwillia.tester.exceptions.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.FileSystem;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 final class TesterLogic {
 
     /* throws IOException when creating new output files */
     @SuppressWarnings("null") //null-checking is performed on inDir and outDir by Tester
-    static void parseCommand(String c, File inDir, File outDir, PrintStream console, Map<String, File> commands)
+    static void parseCommand(String c, File inDir, File outDir, PrintStream console, Map<String, File> commands,
+                             Path workDir)
             throws AngleExpressionException, IOException
     {
         File[] inFiles = inDir.listFiles();
@@ -56,8 +56,8 @@ final class TesterLogic {
             //if an output file has already been created, pair the two files and generate a command for the pair
             if(outKeys.containsKey(nextKey)) {
                 try {
-                    commands.put(generateCommand(c, nextInFile.toPath().toString(),
-                            nextOutFile.toPath().toString()), nextOutFile);
+                    commands.put(generateCommand(c, Paths.get(nextInFile.getCanonicalPath()),
+                            Paths.get(nextOutFile.getCanonicalPath()), workDir), nextOutFile);
                 } catch (AngleExpressionException e) {
                     console.println(e.getMessage());
                     throw e;
@@ -75,8 +75,8 @@ final class TesterLogic {
                         console.println("File " + file.getName() + " has been created as a paired output file to "
                                 + inKeys.get(nextKey) + ".");
                         try{
-                            commands.put(generateCommand(c, nextInFile.toPath().toString(),
-                                    file.toPath().toString()), file);
+                            commands.put(generateCommand(c, Paths.get(nextInFile.getCanonicalPath()),
+                                    Paths.get(file.getCanonicalPath()), workDir), file);
                         }
                         catch(AngleExpressionException e)
                         {
@@ -97,7 +97,7 @@ final class TesterLogic {
         }
     }
 
-    private static String generateCommand(String c, String ifile, String ofile)
+    private static String generateCommand(String c, Path ifile, Path ofile, Path workDir)
             throws AngleExpressionException {
         StringBuilder command = new StringBuilder();
 
@@ -130,8 +130,8 @@ final class TesterLogic {
                 throw new UnpairedAngleException(UnpairedAngleException.UnpairType.OPENING);
             }
 
-            if(expr.toString().equals("input")) command.append(ifile);
-            else if(expr.toString().equals("output")) command.append(ofile);
+            if(expr.toString().equals("input")) command.append(workDir.relativize(ifile));
+            else if(expr.toString().equals("output")) command.append(workDir.relativize(ofile));
             else
             {
                 throw new InvalidContentsException();
@@ -139,6 +139,90 @@ final class TesterLogic {
         }
 
         return command.toString();
+    }
+
+    static void compareResults(File outDir, File refDir, PrintStream console)
+    {
+        File[] outFiles = outDir.listFiles();
+        File[] refFiles = refDir.listFiles();
+
+        Map<Integer, File> outKeys = new HashMap<>()
+        {
+            @Override
+            public File put(Integer key, File value)
+            {
+                if(containsKey(key))
+                    console.println("WARNING: Output file " + value.getName() + " represents the addition of a duplicate"
+                            +" key and will override output file " + get(key).getName() + "in comparison to reference.");
+                return super.put(key, value);
+            }
+        };
+
+        Map<Integer, File> refKeys = new HashMap<>()
+        {
+            @Override
+            public File put(Integer key, File value)
+            {
+                if(containsKey(key))
+                    console.println("WARNING: Reference file " + value.getName() + " represents the addition of a duplicate"
+                            +" key and will override reference file " + get(key).getName() + ".");
+                return super.put(key, value);
+            }
+        };
+
+        readKeys(outFiles, outKeys, console);
+        readKeys(refFiles, refKeys, console);
+
+        //notify the user of missing output files or missing reference files
+        for(Integer i : outKeys.keySet())
+        {
+            if (!refKeys.containsKey(i))
+            {
+                console.println("No corresponding reference file found to check output from " +
+                        outKeys.get(i).getName() + ".");
+            }
+        }
+
+        //additionally, test every result for which a reference file exists
+        for(Integer i : refKeys.keySet())
+        {
+            if(!outKeys.containsKey(i))
+            {
+                console.println("No corresponding test result found to compare against reference " +
+                        refKeys.get(i).getName() + ".");
+                continue;
+            }
+
+            BufferedReader readOut;
+            BufferedReader readRef;
+            try
+            {
+                readOut = new BufferedReader(new InputStreamReader(new FileInputStream(outKeys.get(i))));
+                readRef = new BufferedReader(new InputStreamReader(new FileInputStream(refKeys.get(i))));
+            }
+            catch (IOException e)
+            {
+                console.println("Error reading from output file " + outKeys.get(i) + " or reference file "
+                    + refKeys.get(i) + ".");
+                continue;
+            }
+
+            try
+            {
+                String nextRef;
+                boolean correct = true;
+                while((nextRef = readRef.readLine()) != null)
+                {
+                    if(!nextRef.equals(readOut.readLine())) correct = false;
+                }
+
+                String result = "Trial number " + i.toString() + (correct ? "succeeded" : "failed") + " after comparison" +
+                        " between files " + outKeys.get(i) + " and " + refKeys.get(i);
+
+                readRef.close();
+                readOut.close();
+            } catch(IOException e) {}
+        }
     }
 
     private static void readKeys(File[] files, Map<Integer, File> keys, PrintStream console)
