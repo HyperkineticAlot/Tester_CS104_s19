@@ -490,14 +490,15 @@ public class Tester
         try
         {
             command = "valgrind --tool=memcheck --leak-check=yes ./";
-            command += Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
+            String relativeTest = Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
+            command += relativeTest.substring(0, relativeTest.length()-4);
             command += " <input>";
             gui.setCommand(command);
         } catch(IllegalArgumentException e)
         {
             System.out.println("Test script path could not be relativised against working directory.");
             command = "valgrind --tool=memcheck --leak-check=yes ./";
-            command += preferences[I_TESTPATH];
+            command += preferences[I_TESTPATH].substring(0, preferences[I_TESTPATH].length()-4);
             command += " <input>";
             gui.setCommand(command);
         }
