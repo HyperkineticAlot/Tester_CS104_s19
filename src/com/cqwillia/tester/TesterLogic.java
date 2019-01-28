@@ -145,6 +145,11 @@ final class TesterLogic {
     {
         File[] outFiles = outDir.listFiles();
         File[] refFiles = refDir.listFiles();
+        if(refFiles == null)
+        {
+            console.println("No reference files available.");
+            return;
+        }
 
         Map<Integer, File> outKeys = new HashMap<Integer, File>()
         {
