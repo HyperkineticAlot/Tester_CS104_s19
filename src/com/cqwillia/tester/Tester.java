@@ -561,6 +561,7 @@ public class Tester
                 fileOut.close();
             }
 
+            console.println("Comparing outcomes between output file and reference solutions.");
             TesterLogic.compareResults(outDir, new File(preferences[I_REFDIR]), console);
         }
         catch(AngleExpressionException a)
@@ -603,6 +604,7 @@ public class Tester
             //initialise console text area and add to pane
             consoleWindow = new JTextArea();
             consoleWindow.setEditable(false);
+            consoleWindow.setLineWrap(true);
             JScrollPane scroll = new JScrollPane(consoleWindow);
             GridBagConstraints scrollConstraints = new GridBagConstraints();
             scrollConstraints.fill = GridBagConstraints.BOTH;

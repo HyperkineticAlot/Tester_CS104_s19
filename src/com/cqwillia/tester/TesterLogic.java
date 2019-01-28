@@ -226,6 +226,8 @@ final class TesterLogic {
             } catch(IOException e) {}
             try
             {
+                readOut.close();
+                readOut = new BufferedReader(new InputStreamReader(new FileInputStream(outKeys.get(i))));
                 String nextOut;
                 while((nextOut = readOut.readLine()) != null)
                 {
@@ -236,6 +238,7 @@ final class TesterLogic {
                 String result = "Trial number " + i.toString() + (correct ? "succeeded" : "failed") + " after comparison" +
                         " between files " + outKeys.get(i) + " and " + refKeys.get(i);
 
+                console.println(result);
                 readRef.close();
                 readOut.close();
             } catch(IOException e) {}
