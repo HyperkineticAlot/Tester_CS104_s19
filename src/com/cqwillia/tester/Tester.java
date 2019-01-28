@@ -25,7 +25,6 @@ public class Tester
     private String[] preferences;
     private String[] defaultPrefs;
 
-    private BufferedReader reader;
     private PrintStream console;
     private String command;
 
@@ -43,16 +42,10 @@ public class Tester
     private static final int I_REFDIR = 5;
     private static final int I_TESTPATH = 6;
     private static final String PREF_PATH = "d.PREFERENCES";
+    private static final String LOG_PATH = "session.log";
 
     public Tester()
     {
-        init();
-    }
-
-    public Tester(String dir)
-    {
-        gui = null;
-
         init();
     }
 
@@ -130,7 +123,30 @@ public class Tester
 
         defaultCommand();
 
-        //generate piped input and output streams to handle data flow into console
+        File log = new File(LOG_PATH);
+        try
+        {
+            if(!log.exists()) log.createNewFile();
+            console = new PrintStream(log)
+            {
+                @Override
+                public void println(String s)
+                {
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run()
+                        {
+                            gui.consoleWindow.append(s);
+                            gui.consoleWindow.append("\n");
+                        }
+                    });
+                    super.println(s);
+                }
+            };
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // THE FOLLOWING CODE IS DECOMISSIONED : MORE ELEGANT SOLUTION, POSSIBLY NOT THREAD SAFE?
+        /*//generate piped input and output streams to handle data flow into console
         PipedOutputStream out = new PipedOutputStream();
         console = new PrintStream(out, true);
         try
@@ -167,7 +183,7 @@ public class Tester
             }
         };
 
-        new Thread(consoleUpdater).start();
+        new Thread(consoleUpdater).start();*/
 
         try
         {
@@ -206,10 +222,7 @@ public class Tester
             System.out.println("Error writing preferences to preference file.");
         }
 
-        try
-        {
-            reader.close();
-        } catch(IOException e) { e.printStackTrace(); }
+        console.close();
     }
 
     public void printToConsole(String s)
