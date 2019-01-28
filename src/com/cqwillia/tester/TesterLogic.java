@@ -19,7 +19,7 @@ final class TesterLogic {
         File[] outFiles = outDir.listFiles();
 
         //define new map subclasses to issue warnings when filenames with duplicate numbers are added
-        Map<Integer, File> inKeys = new HashMap<>()
+        Map<Integer, File> inKeys = new HashMap<Integer, File>()
         {
             @Override
             public File put(Integer key, File value)
@@ -31,7 +31,7 @@ final class TesterLogic {
             }
         };
 
-        Map<Integer, File> outKeys = new HashMap<>()
+        Map<Integer, File> outKeys = new HashMap<Integer, File>()
         {
             @Override
             public File put(Integer key, File value)
@@ -146,7 +146,7 @@ final class TesterLogic {
         File[] outFiles = outDir.listFiles();
         File[] refFiles = refDir.listFiles();
 
-        Map<Integer, File> outKeys = new HashMap<>()
+        Map<Integer, File> outKeys = new HashMap<Integer, File>()
         {
             @Override
             public File put(Integer key, File value)
@@ -158,7 +158,7 @@ final class TesterLogic {
             }
         };
 
-        Map<Integer, File> refKeys = new HashMap<>()
+        Map<Integer, File> refKeys = new HashMap<Integer, File>()
         {
             @Override
             public File put(Integer key, File value)

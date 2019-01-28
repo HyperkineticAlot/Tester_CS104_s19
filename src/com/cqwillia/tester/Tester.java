@@ -515,9 +515,11 @@ public class Tester
                 String[] arguments = c.split(" ");
                 ProcessBuilder builder = new ProcessBuilder(arguments);
                 builder.directory(new File(preferences[I_WDIR]));
+                console.println("Conducting test " + c);
                 Process p = builder.start();
                 byte[] consoleOutput = new byte[256];
                 p.getInputStream().read(consoleOutput);
+                console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
                 Files.write(parsed.get(c).toPath(), consoleOutput);
             }
         }
