@@ -16,7 +16,7 @@ automate testing for 104 homework problems with ungraded test cases. To
 get started with the first test implemented into Tester, Homework 2's
 split, begin by cloning this repository into the cs104 directory on your
 Virtual Machine. In order for Tester to work as intended, it's easiest 
-if you run it from inside your hw-<name>/hw2 directory. Copy the 
+if you run it from inside your `hw-<name>/hw2` directory. Copy the 
 `cs104/Tester_CS104_s19` directory into that folder.
 
 To run a java application, you'll need to install the Java Development Kit.
