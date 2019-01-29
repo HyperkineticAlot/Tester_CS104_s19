@@ -732,7 +732,6 @@ public class Tester
 
             //initialise dropdown menus for homework and test name, and pin to mounting panels
             JPanel hwPanel = new JPanel();
-            hwPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
             hwNum = new JComboBox<>( new String[]{ "Homework 2" } );
             hwPanel.add(new JLabel("Homework number:"));
             hwPanel.add(hwNum);

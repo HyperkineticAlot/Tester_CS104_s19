@@ -1,0 +1,14 @@
+default.workingDirectory=..
+default.homeworkNumber=Homework 2
+default.testName=split
+default.inputDirectory=test/input/split
+default.outputDirectory=test/output/split
+default.referenceDirectory=test/ref/split
+default.testPath=../split_test.cpp
+saved.workingDirectory=
+saved.homeworkNumber=
+saved.testName=
+saved.inputDirectory=
+saved.outputDirectory=
+saved.referenceDirectory=
+saved.testPath=
