@@ -296,6 +296,16 @@ public class Tester
         File inDir = new File(preferences[I_INDIR]);
         File outDir = new File(preferences[I_OUTDIR]);
 
+        if(!outDir.exists())
+        {
+            if(!outDir.mkdirs())
+            {
+                console.println("ERROR: Specified output directory " + preferences[I_OUTDIR] + " does not exist " +
+                        "and cannot be created by the Java Virtual Machine. Please create it manually.");
+                return;
+            }
+        }
+
         runCommands(comm, inDir, outDir);
     }
 
