@@ -624,7 +624,11 @@ public class Tester
                 String errLine;
                 while((errLine = consoleErr.readLine()) != null)
                 {
-                    System.out.println(errLine);
+                    if(errLine.contains("blocks are definitely lost"))
+                    {
+                        console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
+                        console.println(errLine);
+                    }
                 }
             }
 
