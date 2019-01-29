@@ -253,7 +253,7 @@ final class TesterLogic {
                 }
                 if(outLines != refLines) correct = false;
 
-                String result = "Trial number " + i.toString() + (correct ? "succeeded" : "failed") + " after comparison" +
+                String result = "Trial number " + i.toString() + (correct ? " succeeded" : " failed") + " after comparison" +
                         " between files " + outKeys.get(i) + " and " + refKeys.get(i);
 
                 console.println(result);
