@@ -598,7 +598,6 @@ public class Tester
         {
             Map<String, File> parsed = new HashMap<>();
             TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
-            if(parsed == null) return;
             Set<String> commands = parsed.keySet();
             for(String c : commands)
             {
@@ -608,6 +607,7 @@ public class Tester
                 console.println("Conducting test " + c);
                 Process p = builder.start();
                 BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader consoleErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
                 console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
                 BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
@@ -618,6 +618,13 @@ public class Tester
                     fileOut.newLine();
                 }
                 fileOut.close();
+
+                console.println("Reading valgrind log");
+                String errLine;
+                while((errLine = consoleErr.readLine()) != null)
+                {
+                    System.out.println(errLine);
+                }
             }
 
             console.println("Comparing outcomes between output file and reference solutions.");
