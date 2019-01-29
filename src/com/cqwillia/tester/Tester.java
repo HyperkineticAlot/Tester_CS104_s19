@@ -658,6 +658,10 @@ public class Tester
                 valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
                 console.println(valWarning);
             }
+            else
+            {
+                console.println("No valgrind errors detected.");
+            }
         }
         catch(AngleExpressionException a)
         {
