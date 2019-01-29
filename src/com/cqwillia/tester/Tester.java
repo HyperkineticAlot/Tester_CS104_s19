@@ -626,7 +626,7 @@ public class Tester
                 String errLine;
                 while((errLine = consoleErr.readLine()) != null)
                 {
-                    if(errLine.contains("blocks are definitely lost"))
+                    if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
                     {
                         console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
                         valFailed.add(parsed.get(c).toString());
