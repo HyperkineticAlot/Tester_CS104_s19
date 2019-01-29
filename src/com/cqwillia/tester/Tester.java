@@ -609,6 +609,7 @@ public class Tester
         try
         {
             ArrayList<String> valFailed = new ArrayList<>();
+            boolean valError = false;
             Map<String, File> parsed = new HashMap<>();
             TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
             Set<String> commands = parsed.keySet();
@@ -638,6 +639,7 @@ public class Tester
                 {
                     if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
                     {
+                        valError = true;
                         console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
                         valFailed.add(parsed.get(c).toString());
                     }
@@ -646,13 +648,16 @@ public class Tester
 
             console.println("Comparing outcomes between output file and reference solutions.");
             TesterLogic.compareResults(outDir, new File(preferences[I_REFDIR]), console);
-            String valWarning = "WARNING: Valgrind errors detected in trials corresponding to output files ";
-            for(String s : valFailed)
+            if(valError)
             {
-                valWarning += s + ", ";
+                String valWarning = "WARNING: Valgrind errors detected in trials corresponding to output files ";
+                for(String s : valFailed)
+                {
+                    valWarning += s + ", ";
+                }
+                valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
+                console.println(valWarning);
             }
-            valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
-            console.println(valWarning);
         }
         catch(AngleExpressionException a)
         {
