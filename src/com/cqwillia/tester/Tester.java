@@ -64,6 +64,8 @@ public class Tester
      */
     private String command;
 
+    private String valgrindLog;
+
     /**
      * Field is responsible for communication between <code>Tester</code> and
      * <code>TesterInterface</code> as to which field of Tester's preferences is
@@ -90,12 +92,14 @@ public class Tester
     private static final int I_TESTPATH = 6;
 
     /**
-     * These two <code>static final</code> fields store the default file names of
+     * These three <code>static final</code> fields store the default file names of
      * the file used to load and store preferences at the beginning and end of program
-     * execution and the session log file to which the console prints all output.
+     * execution, the session log file to which the console prints all output, and the
+     * log file to which valgrind prints memcheck results.
      */
     private static final String PREF_PATH = "d.PREFERENCES";
     private static final String LOG_PATH = "session.log";
+    private static final String VALGRIND_LOG = "valgrind.log";
 
     /**
      * Sole constructor. <code>Tester</code> objects require no constructor input,
@@ -575,9 +579,17 @@ public class Tester
             System.out.println("Preferences initialised incorrectly. Starting command will not include test script.");
             return;
         }
+
+        valgrindLog = Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_OUTDIR])).toString() +
+                System.getProperty("file.separator") + VALGRIND_LOG;
+        File log = new File(valgrindLog);
         try
         {
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
+            if(!log.exists()) log.createNewFile();
+        } catch(IOException e) { console.println("Failed to create valgrind log file."); }
+        command = "valgrind --tool=memcheck --leak-check=yes --log-file=\"" + valgrindLog + "\" ./";
+        try
+        {
             String relativeTest = Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
             command += relativeTest.substring(0, relativeTest.length()-4);
             command += " <input>";
@@ -585,7 +597,6 @@ public class Tester
         } catch(IllegalArgumentException e)
         {
             System.out.println("Test script path could not be relativised against working directory.");
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
             command += preferences[I_TESTPATH].substring(0, preferences[I_TESTPATH].length()-4);
             command += " <input>";
             gui.setCommand(command);
@@ -607,7 +618,6 @@ public class Tester
                 console.println("Conducting test " + c);
                 Process p = builder.start();
                 BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                BufferedReader consoleErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
                 console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
                 BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
@@ -619,12 +629,11 @@ public class Tester
                 }
                 fileOut.close();
 
-                console.println("Reading valgrind log");
-                String errLine;
-                while((errLine = consoleErr.readLine()) != null)
-                {
-                    System.out.println(errLine);
-                }
+                console.println("Checking valgrind log file for test corresponding to output file " +
+                        parsed.get(c).toPath().toString() + ".");
+                BufferedReader logIn = new BufferedReader(new InputStreamReader(new FileInputStream(valgrindLog)));
+
+                logIn.close();
             }
 
             console.println("Comparing outcomes between output file and reference solutions.");
@@ -775,6 +784,8 @@ public class Tester
 
                     updateField(Field.HOMEWORK_NUM, (String) hwNum.getSelectedItem());
                     updateField(Field.TEST_NAME, (String) testName.getSelectedItem());
+
+                    defaultCommand();
                 }
             });
             buttonPanel.add(restoreButton);
