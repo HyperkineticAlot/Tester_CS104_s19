@@ -17,14 +17,23 @@ final class TesterLogic {
     {
         File[] inFiles = inDir.listFiles();
         File[] outFiles = outDir.listFiles();
+        //custom test cases where there may be no need for an input file
         if(inFiles == null)
         {
-            console.println("ERROR: Given input directory " + inDir.getName() + " is empty.");
-            return;
-        }
-        if(outFiles == null)
-        {
-            outFiles = new File[0];
+            if(c.contains("<input>"))
+            {
+                console.println("ERROR: Command contains <input> token, but input directory is empty.");
+                return;
+            }
+            if(outFiles == null)
+            {
+                File defOutput = new File(outDir + System.getProperty("file.separator") + "output_01.txt");
+                defOutput.createNewFile();
+                console.println("New output file output_01.txt generated for command without input file.");
+                commands.put(generateCommand(c, null, Paths.get(defOutput.getCanonicalPath()), workDir), defOutput);
+                return;
+            }
+            commands.put(generateCommand(c, null, Paths.get(outFiles[0].getCanonicalPath()), workDir), outFiles[0]);
         }
 
         //define new map subclasses to issue warnings when filenames with duplicate numbers are added
@@ -257,6 +266,7 @@ final class TesterLogic {
     private static void readKeys(File[] files, Map<Integer, File> keys, PrintStream console)
     {
         //assign each file a code based on the first collection of less than 9 digits in its filename
+        if(files == null) return;
         for(File f : files)
         {
             if(!f.isFile()) continue; //disregard subdirectories
