@@ -20,7 +20,6 @@ final class TesterLogic {
         if(inFiles == null)
         {
             console.println("ERROR: Given input directory " + inDir.getName() + " is empty.");
-            commands = null;
             return;
         }
         if(outFiles == null)
