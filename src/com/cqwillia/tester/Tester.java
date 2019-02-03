@@ -13,10 +13,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Cameron Williams
@@ -98,6 +95,9 @@ public class Tester
     private static final String PREF_PATH = "d.PREFERENCES";
     private static final String LOG_PATH = "session.log";
 
+    private static final String[][] TESTS = { {"split", "ulliststr"},
+                                             {"ulliststr_ops"}};
+
     /**
      * Sole constructor. <code>Tester</code> objects require no constructor input,
      * as all objects of this class are intended to be functionally identical.
@@ -161,6 +161,14 @@ public class Tester
             {
                 preferences[i] = defaultPrefs[i];
             }
+        }
+
+        //If the preferences file has been edited to create an illegal testName/homeworkNumber pairing,
+        //fix the inconsistency
+        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 2));
+        if(!Arrays.asList(TESTS[hwNum-1]).contains(preferences[I_TESTNAME]))
+        {
+            preferences[I_TESTNAME] = TESTS[hwNum-1][0];
         }
 
         //initialise the gui
@@ -340,6 +348,8 @@ public class Tester
                 if(s.equals(preferences[I_HWNUM])) return;
                 preferences[I_HWNUM] = s;
                 console.println("Preparing to run test cases for " + s + ".");
+                gui.setTestList(TESTS[Integer.parseInt(
+                        preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 2))]);
                 break;
 
             case TEST_NAME:
@@ -751,7 +761,13 @@ public class Tester
 
             //initialise dropdown menus for homework and test name, and pin to mounting panels
             JPanel hwPanel = new JPanel();
-            hwNum = new JComboBox<>( new String[]{ "Homework 2" } );
+            hwNum = new JComboBox<>( new String[]{ "Homework 2", "Homework 3" } );
+            hwNum.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateField(Field.HOMEWORK_NUM, testName.getSelectedItem().toString());
+                }
+            });
             hwPanel.add(new JLabel("Homework number:"));
             hwPanel.add(hwNum);
             GridBagConstraints hwConstraints = new GridBagConstraints();
@@ -806,7 +822,6 @@ public class Tester
                     updateField(Field.TEST_PATH, testPath.getText());
 
                     updateField(Field.HOMEWORK_NUM, (String) hwNum.getSelectedItem());
-                    updateField(Field.TEST_NAME, (String) testName.getSelectedItem());
 
                     defaultCommand();
                 }
@@ -888,6 +903,12 @@ public class Tester
         protected void setCommand(String s)
         {
             commandField.setText(s);
+        }
+
+        protected void setTestList(String[] tests)
+        {
+            DefaultComboBoxModel<String> newModel = new DefaultComboBoxModel(tests);
+            testName.setModel(newModel);
         }
 
         private void setConstraints(GridBagConstraints c, int x, int y)
