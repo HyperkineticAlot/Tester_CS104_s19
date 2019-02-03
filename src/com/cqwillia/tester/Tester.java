@@ -62,6 +62,8 @@ public class Tester
      */
     private String command;
 
+    private CommandBuilder builder;
+
     /**
      * Field is responsible for communication between <code>Tester</code> and
      * <code>TesterInterface</code> as to which field of Tester's preferences is
@@ -170,6 +172,9 @@ public class Tester
         {
             preferences[I_TESTNAME] = TESTS[hwNum-1][0];
         }
+
+        //create the command builder with the verified testname
+        builder = new CommandBuilder(preferences[I_TESTNAME]);
 
         //initialise the gui
         try
