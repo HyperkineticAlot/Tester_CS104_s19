@@ -2,15 +2,19 @@ package com.cqwillia.tester;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class CommandBuilder
 {
     private static final Map<String, String> dependencies;
     static {
-        dependencies = Map.of("split_test", "scripts/bin/split.o",
-                              "ulliststr_test", "scripts/bin/ulliststr.o",
-                              "ulliststr_ops_test", "scripts/bin/ulliststr.o");
+        Map<String, String> m = new HashMap<String, String>();
+        m.put("split_test", "scripts/bin/split.o");
+        m.put("ulliststr_test", "scripts/bin/ulliststr.o");
+        m.put("ulliststr_ops_test", "scripts/bin/ulliststr.o");
+        dependencies = Collections.unmodifiableMap(m);
     }
 
     /* This function creates and builds:
