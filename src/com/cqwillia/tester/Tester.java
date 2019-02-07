@@ -62,8 +62,6 @@ public class Tester
      */
     private String command;
 
-    private CommandBuilder builder;
-
     /**
      * Field is responsible for communication between <code>Tester</code> and
      * <code>TesterInterface</code> as to which field of Tester's preferences is
@@ -172,9 +170,6 @@ public class Tester
         {
             preferences[I_TESTNAME] = TESTS[hwNum-1][0];
         }
-
-        //create the command builder with the verified testname
-        builder = new CommandBuilder(preferences[I_TESTNAME]);
 
         //initialise the gui
         try
@@ -621,7 +616,9 @@ public class Tester
 
     private void runCommands(String comm, File inDir, File outDir)
     {
-        try
+        CommandBuilder.build(preferences, console);
+
+        /*try
         {
             ArrayList<String> valFailed = new ArrayList<>();
             boolean valError = false;
@@ -686,7 +683,7 @@ public class Tester
         {
             console.println("ERROR: Failed to create output file:");
             e.printStackTrace(console);
-        }
+        }*/
     }
 
     private class TesterInterface extends JFrame

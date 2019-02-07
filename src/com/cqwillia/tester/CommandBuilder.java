@@ -13,20 +13,13 @@ public final class CommandBuilder
                               "ulliststr_ops_test", "scripts/bin/ulliststr.o");
     }
 
-    private String test;
-
-    public CommandBuilder(String t)
-    {
-        test = t;
-    }
-
     /* This function creates and builds:
         - a Makefile if necessary for compiling the test script
         - a sequence of commands including compilation and execution with valgrind
        Each of these operations is based on the identity of the test being executed by the
        parent Tester, stored in the private field test.
      */
-    public static String[] build(String comm, String[] prefs, PrintStream console)
+    public static void build(String[] prefs, PrintStream console)
     {
         File[] inFiles = new File(prefs[Tester.I_INDIR]).listFiles();
         String thisDeps = dependencies.get(prefs[Tester.I_TESTNAME]);
@@ -36,7 +29,7 @@ public final class CommandBuilder
         if(inFiles == null)
         {
             /* HANDLE NO INPUT CASES HERE */
-            return null;
+            return;
         }
 
         //If there is no script directory, create the script directory (this shouldn't happen...)
@@ -56,7 +49,7 @@ public final class CommandBuilder
         } catch(IOException e)
         {
             e.printStackTrace(console);
-            return null;
+            return;
         }
 
         /* Begin writing to the Makefile.
@@ -70,7 +63,7 @@ public final class CommandBuilder
             makeWriter.write(prefs[Tester.I_TESTPATH]);
             makeWriter.newLine();
             makeWriter.write("\tg++ -g " + prefs[Tester.I_TESTPATH] + " " +
-                    thisDeps + " -o " + prefs[Tester.I_TESTNAME]);
+                    thisDeps + " -o " + binDir.getPath() + sep + prefs[Tester.I_TESTNAME]);
             makeWriter.newLine();
             makeWriter.newLine();
 
@@ -87,14 +80,19 @@ public final class CommandBuilder
         } catch(Exception f)
         {
             f.printStackTrace(console);
-            return null;
+            return;
         }
 
-        return null;
-    }
-
-    public void setTest(String t)
-    {
-        test = t;
+        //Create a ProcessBuilder in the userDir/scripts directory and use it to make
+        ProcessBuilder maker = new ProcessBuilder("make");
+        maker.directory(binDir.getParentFile());
+        console.println("Making script executable for test " + prefs[Tester.I_TESTNAME]);
+        try
+        {
+            maker.start();
+        } catch(IOException e)
+        {
+            console.println("ERROR: Failed to start makefile process.");
+        }
     }
 }
