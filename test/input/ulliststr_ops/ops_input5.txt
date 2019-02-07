@@ -1,0 +1,6 @@
+1
+
+list word word this_one word word word
+
+print 0
+printat 0 2

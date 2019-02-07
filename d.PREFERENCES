@@ -1,10 +1,10 @@
 default.workingDirectory=..
-default.homeworkNumber=Homework 2
-default.testName=split
-default.inputDirectory=test/input/split
-default.outputDirectory=test/output/split
-default.referenceDirectory=test/ref/split
-default.testPath=../split_test.cpp
+default.homeworkNumber=Homework 3
+default.testName=ulliststr_ops
+default.inputDirectory=test/input/ulliststr_ops
+default.outputDirectory=test/output/ulliststr_ops
+default.referenceDirectory=test/ref/ulliststr_ops
+default.testPath=scripts/src/ulliststr_ops_test.cpp
 saved.workingDirectory=
 saved.homeworkNumber=
 saved.testName=
