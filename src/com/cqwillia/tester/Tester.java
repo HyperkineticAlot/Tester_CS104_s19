@@ -81,13 +81,13 @@ public class Tester
      * <code>I_TESTNAME</code> stores the index of the test name string within
      * <code>preferences</code>.
      */
-    private static final int I_WDIR = 0;
-    private static final int I_HWNUM = 1;
-    private static final int I_TESTNAME = 2;
-    private static final int I_INDIR = 3;
-    private static final int I_OUTDIR = 4;
-    private static final int I_REFDIR = 5;
-    private static final int I_TESTPATH = 6;
+    public static final int I_WDIR = 0;
+    public static final int I_HWNUM = 1;
+    public static final int I_TESTNAME = 2;
+    public static final int I_INDIR = 3;
+    public static final int I_OUTDIR = 4;
+    public static final int I_REFDIR = 5;
+    public static final int I_TESTPATH = 6;
 
     /**
      * These two <code>static final</code> fields store the default file names of
@@ -97,8 +97,8 @@ public class Tester
     private static final String PREF_PATH = "d.PREFERENCES";
     private static final String LOG_PATH = "session.log";
 
-    private static final String[][] TESTS = { {"split", "ulliststr"},
-                                             {"ulliststr_ops"}};
+    private static final String[][] TESTS = { {"split_test", "ulliststr_test"},
+                                             {"ulliststr_ops_test"}};
 
     /**
      * Sole constructor. <code>Tester</code> objects require no constructor input,
