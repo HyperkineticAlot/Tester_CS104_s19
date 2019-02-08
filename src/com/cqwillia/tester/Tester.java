@@ -597,21 +597,11 @@ public class Tester
             return;
         }
 
-        try
-        {
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
-            String relativeTest = Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
-            command += relativeTest.substring(0, relativeTest.length()-4);
-            command += " <input>";
-            gui.setCommand(command);
-        } catch(IllegalArgumentException e)
-        {
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
-            System.out.println("Test script path could not be relativised against working directory.");
-            command += preferences[I_TESTPATH].substring(0, preferences[I_TESTPATH].length()-4);
-            command += " <input>";
-            gui.setCommand(command);
-        }
+        command = "valgrind --tool=memcheck --leak-check=yes ./";
+        String testFileName = new File(preferences[I_TESTPATH]).getName();
+        command += CommandBuilder.getExecPath(testFileName.substring(0, testFileName.length()-4));
+        command += " <input>";
+        gui.setCommand(command);
     }
 
     private void runCommands(String comm, File inDir, File outDir)

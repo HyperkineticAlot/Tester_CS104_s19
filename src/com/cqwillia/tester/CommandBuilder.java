@@ -121,4 +121,14 @@ public final class CommandBuilder
             console.println("ERROR: Failed to start makefile process.");
         }
     }
+
+    public static void run()
+    {
+    }
+
+    public static String getExecPath(String testExec)
+    {
+        String sep = System.getProperty("file.separator");
+        return "scripts" + sep + "bin" + sep + testExec;
+    }
 }
