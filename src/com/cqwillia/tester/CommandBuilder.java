@@ -3,6 +3,7 @@ package com.cqwillia.tester;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,17 +67,17 @@ public final class CommandBuilder
             //Copy the test script into the scripts/src directory
             File testScriptFile = new File(prefs[Tester.I_TESTPATH]);
             String testPathFromMake = "src" + sep + testScriptFile.getName();
-            Files.copy(testScriptFile.toPath(), Paths.get("script" + sep + testPathFromMake));
+            Files.copy(testScriptFile.toPath(), Paths.get("scripts" + sep + testPathFromMake),
+                    StandardCopyOption.REPLACE_EXISTING);
 
             //write the all block
-            makeWriter.write("all: " + thisDeps);
+            makeWriter.write("all: " + thisDeps + " ");
             makeWriter.write(testPathFromMake);
             makeWriter.newLine();
             makeWriter.write("\tg++ -g " + testPathFromMake);
             for(String dep : thisDeps.split(" "))
             {
                 String b = "bin" + sep + dep;
-                b = new File(b).getCanonicalPath();
                 makeWriter.write(" " + b);
             }
             makeWriter.write(" -o bin" + sep + prefs[Tester.I_TESTNAME]);
@@ -88,8 +89,13 @@ public final class CommandBuilder
             {
                 //Copy the dependency script into the scripts/src directory
                 File depScriptFile = new File(prefs[Tester.I_WDIR] + sep + dep.substring(0, dep.length()-2) + ".cpp");
+                File depScriptH = new File(prefs[Tester.I_WDIR] + sep + dep.substring(0, dep.length()-2) + ".h");
                 String depPathFromMake = "src" + sep + depScriptFile.getName();
-                Files.copy(depScriptFile.toPath(), Paths.get("script" + sep + depPathFromMake));
+                Files.copy(depScriptFile.toPath(), Paths.get("scripts" + sep + depPathFromMake),
+                        StandardCopyOption.REPLACE_EXISTING);
+                String hPathFromMake = "src" + sep + depScriptH.getName();
+                Files.copy(depScriptH.toPath(), Paths.get("scripts" + sep + hPathFromMake),
+                        StandardCopyOption.REPLACE_EXISTING);
 
                 makeWriter.write(dep + ": " + depPathFromMake);
                 makeWriter.newLine();
@@ -105,7 +111,7 @@ public final class CommandBuilder
 
         //Create a ProcessBuilder in the userDir/scripts directory and use it to make
         ProcessBuilder maker = new ProcessBuilder("make");
-        maker.directory(new File("source"));
+        maker.directory(new File("scripts"));
         console.println("Making script executable for test " + prefs[Tester.I_TESTNAME]);
         try
         {
