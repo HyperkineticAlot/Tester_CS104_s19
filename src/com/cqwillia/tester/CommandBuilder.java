@@ -11,9 +11,9 @@ public final class CommandBuilder
     private static final Map<String, String> dependencies;
     static {
         Map<String, String> m = new HashMap<String, String>();
-        m.put("split_test", "scripts/bin/split.o");
-        m.put("ulliststr_test", "scripts/bin/ulliststr.o");
-        m.put("ulliststr_ops_test", "scripts/bin/ulliststr.o");
+        m.put("split_test", "split.o");
+        m.put("ulliststr_test", "ulliststr.o");
+        m.put("ulliststr_ops_test", "ulliststr.o");
         dependencies = Collections.unmodifiableMap(m);
     }
 
@@ -27,8 +27,6 @@ public final class CommandBuilder
     {
         File[] inFiles = new File(prefs[Tester.I_INDIR]).listFiles();
         String thisDeps = dependencies.get(prefs[Tester.I_TESTNAME]);
-        String userDir = System.getProperty("user.dir");
-        String relativeWDir = Paths.get(userDir).relativize(Paths.get(prefs[Tester.I_WDIR])).toString();
 
         if(inFiles == null)
         {
@@ -45,8 +43,8 @@ public final class CommandBuilder
             console.println(binDir.getName() + " has been created. Don't delete the script directory!");
         }
 
-        //create the makefile in the userDir/scripts directory
-        File makefile = new File(binDir.getParentFile(), "Makefile");
+        //create the makefile in the working directory
+        File makefile = new File(new File(prefs[Tester.I_WDIR]), "Makefile");
         try
         {
             if(!makefile.exists()) makefile.createNewFile();
@@ -62,22 +60,29 @@ public final class CommandBuilder
          */
         try(BufferedWriter makeWriter = new BufferedWriter(new PrintWriter(new FileOutputStream(makefile.getPath()))))
         {
+            String canTestPath = new File(prefs[Tester.I_TESTPATH]).getCanonicalPath();
             //write the all block
             makeWriter.write("all: " + thisDeps);
-            makeWriter.write(prefs[Tester.I_TESTPATH]);
+            makeWriter.write(canTestPath);
             makeWriter.newLine();
-            makeWriter.write("\tg++ -g " + prefs[Tester.I_TESTPATH] + " " +
-                    thisDeps + " -o " + binDir.getPath() + sep + prefs[Tester.I_TESTNAME]);
+            makeWriter.write("\tg++ -g " + canTestPath + " ");
+            for(String dep : thisDeps.split(" "))
+            {
+                String can = "scripts" + sep + "bin" + sep + dep;
+                can = new File(can).getCanonicalPath();
+                makeWriter.write(can + " ");
+            }
+            makeWriter.write(" -o " + binDir.getCanonicalPath() + sep + prefs[Tester.I_TESTNAME]);
             makeWriter.newLine();
             makeWriter.newLine();
 
             //write a block for each dependency for this test
             for(String dep : thisDeps.split(" "))
             {
-                String depScriptPath = relativeWDir + sep + dep.substring(0, dep.length()-2) + ".cpp";
+                String depScriptPath = dep.substring(0, dep.length()-2) + ".cpp";
                 makeWriter.write(dep + ": " + depScriptPath);
                 makeWriter.newLine();
-                makeWriter.write("\tg++ -g -c " + depScriptPath + " -o " + binDir.getPath() + sep + dep);
+                makeWriter.write("\tg++ -g -c " + depScriptPath + " -o " + binDir.getCanonicalPath() + sep + dep);
                 makeWriter.newLine();
                 makeWriter.newLine();
             }
@@ -89,7 +94,7 @@ public final class CommandBuilder
 
         //Create a ProcessBuilder in the userDir/scripts directory and use it to make
         ProcessBuilder maker = new ProcessBuilder("make");
-        maker.directory(binDir.getParentFile());
+        maker.directory(new File(prefs[Tester.I_WDIR]));
         console.println("Making script executable for test " + prefs[Tester.I_TESTNAME]);
         try
         {

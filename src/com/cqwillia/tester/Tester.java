@@ -165,10 +165,10 @@ public class Tester
 
         //If the preferences file has been edited to create an illegal testName/homeworkNumber pairing,
         //fix the inconsistency
-        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 2));
-        if(!Arrays.asList(TESTS[hwNum-1]).contains(preferences[I_TESTNAME]))
+        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 1));
+        if(!Arrays.asList(TESTS[hwNum-2]).contains(preferences[I_TESTNAME]))
         {
-            preferences[I_TESTNAME] = TESTS[hwNum-1][0];
+            preferences[I_TESTNAME] = TESTS[hwNum-2][0];
         }
 
         //initialise the gui
