@@ -1,6 +1,7 @@
 package com.cqwillia.tester;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,14 +38,16 @@ public final class CommandBuilder
         //If there is no script directory, create the script directory (this shouldn't happen...)
         String sep = System.getProperty("file.separator");
         File binDir = new File("scripts" + sep + "bin");
+        File srcDir = new File("scripts" + sep + "src");
         if(!binDir.exists() || !binDir.isDirectory())
         {
             binDir.mkdirs();
+            srcDir.mkdirs();
             console.println(binDir.getName() + " has been created. Don't delete the script directory!");
         }
 
-        //create the makefile in the working directory
-        File makefile = new File(new File(prefs[Tester.I_WDIR]), "Makefile");
+        //create the makefile in the user.dir/scripts directory
+        File makefile = new File("scripts", "Makefile");
         try
         {
             if(!makefile.exists()) makefile.createNewFile();
@@ -60,29 +63,37 @@ public final class CommandBuilder
          */
         try(BufferedWriter makeWriter = new BufferedWriter(new PrintWriter(new FileOutputStream(makefile.getPath()))))
         {
-            String canTestPath = new File(prefs[Tester.I_TESTPATH]).getCanonicalPath();
+            //Copy the test script into the scripts/src directory
+            File testScriptFile = new File(prefs[Tester.I_TESTPATH]);
+            String testPathFromMake = "src" + sep + testScriptFile.getName();
+            Files.copy(testScriptFile.toPath(), Paths.get("script" + sep + testPathFromMake));
+
             //write the all block
             makeWriter.write("all: " + thisDeps);
-            makeWriter.write(canTestPath);
+            makeWriter.write(testPathFromMake);
             makeWriter.newLine();
-            makeWriter.write("\tg++ -g " + canTestPath + " ");
+            makeWriter.write("\tg++ -g " + testPathFromMake);
             for(String dep : thisDeps.split(" "))
             {
-                String can = "scripts" + sep + "bin" + sep + dep;
-                can = new File(can).getCanonicalPath();
-                makeWriter.write(can + " ");
+                String b = "bin" + sep + dep;
+                b = new File(b).getCanonicalPath();
+                makeWriter.write(" " + b);
             }
-            makeWriter.write(" -o " + binDir.getCanonicalPath() + sep + prefs[Tester.I_TESTNAME]);
+            makeWriter.write(" -o bin" + sep + prefs[Tester.I_TESTNAME]);
             makeWriter.newLine();
             makeWriter.newLine();
 
             //write a block for each dependency for this test
             for(String dep : thisDeps.split(" "))
             {
-                String depScriptPath = dep.substring(0, dep.length()-2) + ".cpp";
-                makeWriter.write(dep + ": " + depScriptPath);
+                //Copy the dependency script into the scripts/src directory
+                File depScriptFile = new File(prefs[Tester.I_WDIR] + sep + dep.substring(0, dep.length()-2) + ".cpp");
+                String depPathFromMake = "src" + sep + depScriptFile.getName();
+                Files.copy(depScriptFile.toPath(), Paths.get("script" + sep + depPathFromMake));
+
+                makeWriter.write(dep + ": " + depPathFromMake);
                 makeWriter.newLine();
-                makeWriter.write("\tg++ -g -c " + depScriptPath + " -o " + binDir.getCanonicalPath() + sep + dep);
+                makeWriter.write("\tg++ -g -c " + depPathFromMake + " -o " + "bin" + sep + dep);
                 makeWriter.newLine();
                 makeWriter.newLine();
             }
@@ -94,7 +105,7 @@ public final class CommandBuilder
 
         //Create a ProcessBuilder in the userDir/scripts directory and use it to make
         ProcessBuilder maker = new ProcessBuilder("make");
-        maker.directory(new File(prefs[Tester.I_WDIR]));
+        maker.directory(new File("source"));
         console.println("Making script executable for test " + prefs[Tester.I_TESTNAME]);
         try
         {
