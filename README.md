@@ -69,7 +69,7 @@ Makefile to ensure the executable in use is up to date.
 - Switching between homeworks and tests using the dropdown menus in the
 interface is now fully functional, and will predictively update the paths
 of input/output/reference directories and the test script in the UI.
--The Tester now includes Homework 3's `ulliststr_ops` test, which tests the 
+- The Tester now includes Homework 3's `ulliststr_ops` test, which tests the 
 overloaded operators and copy constructors implemented in the ULListStr class
 with Homework 3. These tests and reference solutions are included in test/input/ulliststr_ops
 and test/ref/ulliststr_ops, and the anchor script is included in scripts/src.
