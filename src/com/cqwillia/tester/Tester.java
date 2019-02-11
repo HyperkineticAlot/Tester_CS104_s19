@@ -342,6 +342,59 @@ public class Tester
                 if(s.equals(preferences[I_TESTNAME])) return;
                 preferences[I_TESTNAME] = s;
                 console.println("Preparing to run test cases for trial "+s+" from "+preferences[I_HWNUM]+".");
+
+                //check automated expectations for where input, output, reference directories and script path should lie
+                File newInDir = new File(new File(preferences[I_INDIR]).getParentFile(), s);
+                if(newInDir.isDirectory())
+                {
+                    preferences[I_INDIR] = newInDir.getPath();
+                    console.println("Input directory updated to " + newInDir.getPath());
+                    gui.restore(Field.INPUT_DIR, newInDir.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected input directory " + newInDir.getPath() + " not found. Please" +
+                            " update the input directory manually.");
+                }
+
+                File newOutDir = new File(new File(preferences[I_OUTDIR]).getParentFile(), s);
+                if(newOutDir.isDirectory())
+                {
+                    preferences[I_OUTDIR] = newOutDir.getPath();
+                    console.println("Output directory updated to " + newOutDir.getPath());
+                    gui.restore(Field.OUTPUT_DIR, newOutDir.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected output directory " + newOutDir.getPath() + " not found. Please" +
+                            " update the output directory manually.");
+                }
+
+                File newRefDir = new File(new File(preferences[I_REFDIR]).getParentFile(), s);
+                if(newRefDir.isDirectory())
+                {
+                    preferences[I_REFDIR] = newRefDir.getPath();
+                    console.println("Reference directory set to " + newRefDir.getPath());
+                    gui.restore(Field.REFERENCE_DIR, newRefDir.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected reference directory " + newRefDir.getPath() + " not found." +
+                            " Please update the reference directory manually.");
+                }
+
+                File newTestScript = new File(new File(preferences[I_REFDIR]).getParentFile(), s + ".cpp");
+                if(newTestScript.exists())
+                {
+                    preferences[I_TESTPATH] = newTestScript.getPath();
+                    console.println("Test script path set to " + newTestScript.getPath());
+                    gui.restore(Field.TEST_PATH, newTestScript.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected test script path " + newTestScript.getPath() + " not found. " +
+                            "Please update the test script path manually.");
+                }
                 break;
 
             case INPUT_DIR:
