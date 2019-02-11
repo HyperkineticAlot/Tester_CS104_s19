@@ -1,0 +1,9 @@
+List 4: 
+List 4: 
+List 4: this list has elements in it! 
+List 4: 
+List 0: 
+List 1: 
+List 2: 
+List 3: this list has elements in it! 
+List 4: 
