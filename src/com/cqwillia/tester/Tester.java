@@ -188,6 +188,10 @@ public class Tester
             }
         });
 
+        //update fields to initialise gui combo boxes
+        updateField(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
+        updateField(Field.TEST_NAME, preferences[I_TESTNAME]);
+
         defaultCommand();
 
         File log = new File(LOG_PATH);
@@ -666,7 +670,7 @@ public class Tester
             prefPanel.add(hwPanel, hwConstraints);
 
             JPanel testPanel = new JPanel();
-            testName = new JComboBox<>( new String[]{"split", "ulliststr"});
+            testName = new JComboBox<>();
             testPanel.add(new JLabel("Test name:"));
             testPanel.add(testName);
             GridBagConstraints testConstraints = new GridBagConstraints();
