@@ -165,7 +165,7 @@ public class Tester
 
         //If the preferences file has been edited to create an illegal testName/homeworkNumber pairing,
         //fix the inconsistency
-        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 2));
+        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 1));
         if(!Arrays.asList(TESTS[hwNum-2]).contains(preferences[I_TESTNAME]))
         {
             preferences[I_TESTNAME] = TESTS[hwNum-2][0];
@@ -328,8 +328,10 @@ public class Tester
                 if(s.equals(preferences[I_HWNUM])) return;
                 preferences[I_HWNUM] = s;
                 console.println("Preparing to run test cases for " + s + ".");
-                gui.setTestList(TESTS[Integer.parseInt(
-                        preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 2))]);
+                String[] defaultTest = TESTS[Integer.parseInt(
+                        preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 1))-2];
+                gui.setTestList(defaultTest);
+                updateField(Field.TEST_NAME, defaultTest[0]);
                 break;
 
             case TEST_NAME:
@@ -654,7 +656,7 @@ public class Tester
             hwNum.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    updateField(Field.HOMEWORK_NUM, testName.getSelectedItem().toString());
+                    updateField(Field.HOMEWORK_NUM, hwNum.getSelectedItem().toString());
                 }
             });
             hwPanel.add(new JLabel("Homework number:"));
