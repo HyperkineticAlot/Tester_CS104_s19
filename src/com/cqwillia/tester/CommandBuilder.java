@@ -165,7 +165,8 @@ public final class CommandBuilder
                 String errLine;
                 while((errLine = consoleErr.readLine()) != null)
                 {
-                    if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
+                    if(errLine.contains("blocks are definitely lost") || errLine.contains("Invalid")
+                            && !valFailed.contains(parsed.get(c).toString()))
                     {
                         valError = true;
                         console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
