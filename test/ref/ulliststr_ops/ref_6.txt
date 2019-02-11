@@ -1,0 +1,4 @@
+List 0: apples oranges lemons beers green blue black purple red green green blue black purple 
+List 1: apples oranges lemons beers green blue black purple red green green blue black purple 
+List 2: apples oranges lemons beers green blue black purple red green green blue black purple texture garment 
+List 3: whither whether who whom where how why texture 
