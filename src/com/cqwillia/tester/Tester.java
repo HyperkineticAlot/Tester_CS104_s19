@@ -379,7 +379,7 @@ public class Tester
                             " Please update the reference directory manually.");
                 }
 
-                File newTestScript = new File(new File(preferences[I_REFDIR]).getParentFile(), s + "_test.cpp");
+                File newTestScript = new File(new File(preferences[I_TESTPATH]).getParentFile(), s + "_test.cpp");
                 if(newTestScript.isFile())
                 {
                     preferences[I_TESTPATH] = newTestScript.getPath();
