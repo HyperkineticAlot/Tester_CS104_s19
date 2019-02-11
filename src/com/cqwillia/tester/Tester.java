@@ -189,8 +189,8 @@ public class Tester
         });
 
         //update fields to initialise gui combo boxes
-        updateField(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
-        updateField(Field.TEST_NAME, preferences[I_TESTNAME]);
+        gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
+        gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
 
         defaultCommand();
 
