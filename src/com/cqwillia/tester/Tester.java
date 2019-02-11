@@ -384,7 +384,7 @@ public class Tester
                 }
 
                 File newTestScript = new File(new File(preferences[I_REFDIR]).getParentFile(), s + ".cpp");
-                if(newTestScript.exists())
+                if(newTestScript.isFile())
                 {
                     preferences[I_TESTPATH] = newTestScript.getPath();
                     console.println("Test script path set to " + newTestScript.getPath());

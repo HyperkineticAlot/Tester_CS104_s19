@@ -86,11 +86,16 @@ public final class CommandBuilder
                 String depPathFromMake = "src" + sep + depScriptFile.getName();
                 Files.copy(depScriptFile.toPath(), Paths.get("scripts" + sep + depPathFromMake),
                         StandardCopyOption.REPLACE_EXISTING);
-                String hPathFromMake = "src" + sep + depScriptH.getName();
-                Files.copy(depScriptH.toPath(), Paths.get("scripts" + sep + hPathFromMake),
-                        StandardCopyOption.REPLACE_EXISTING);
 
                 makeWriter.write(dep + ": " + depPathFromMake);
+                if(depScriptH.isFile())
+                {
+                    String hPathFromMake = "src" + sep + depScriptH.getName();
+                    Files.copy(depScriptH.toPath(), Paths.get("scripts" + sep + hPathFromMake),
+                            StandardCopyOption.REPLACE_EXISTING);
+
+                    makeWriter.write(" " + hPathFromMake);
+                }
                 makeWriter.newLine();
                 makeWriter.write("\tg++ -g -c " + depPathFromMake + " -o " + "bin" + sep + dep);
                 makeWriter.newLine();
