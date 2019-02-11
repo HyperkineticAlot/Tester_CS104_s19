@@ -113,8 +113,8 @@ public final class CommandBuilder
         console.println("Making script executable for test " + prefs[Tester.I_TESTNAME]);
         try
         {
-            maker.start();
-        } catch(IOException e)
+            maker.start().waitFor();
+        } catch(IOException | InterruptedException e)
         {
             console.println("ERROR: Failed to start makefile process.");
         }
