@@ -354,17 +354,7 @@ public class Tester
                 }
 
                 File newOutDir = new File(new File(preferences[I_OUTDIR]).getParentFile(), s);
-                if(newOutDir.isDirectory())
-                {
-                    preferences[I_OUTDIR] = newOutDir.getPath();
-                    console.println("Output directory updated to " + newOutDir.getPath());
-                    gui.restore(Field.OUTPUT_DIR, newOutDir.getPath());
-                }
-                else
-                {
-                    console.println("WARNING: Expected output directory " + newOutDir.getPath() + " not found. Please" +
-                            " update the output directory manually.");
-                }
+                updateField(Field.OUTPUT_DIR, newOutDir.getPath());
 
                 File newRefDir = new File(new File(preferences[I_REFDIR]).getParentFile(), s);
                 if(newRefDir.isDirectory())
