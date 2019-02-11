@@ -171,6 +171,18 @@ public class Tester
             preferences[I_TESTNAME] = TESTS[hwNum-2][0];
         }
 
+        try
+        {
+            preferences[I_WDIR] = new File(preferences[I_WDIR]).getCanonicalPath();
+            preferences[I_INDIR] = new File(preferences[I_INDIR]).getCanonicalPath();
+            preferences[I_OUTDIR] = new File(preferences[I_OUTDIR]).getCanonicalPath();
+            preferences[I_REFDIR] = new File(preferences[I_REFDIR]).getCanonicalPath();
+            preferences[I_TESTPATH] = new File(preferences[I_TESTPATH]).getCanonicalPath();
+        } catch(IOException e)
+        {
+            console.println("WARNING: One or more paths in preferences file cannot be canonized.");
+        }
+
         //initialise the gui
         try
         {
@@ -189,6 +201,7 @@ public class Tester
         });
 
         //update fields to initialise gui combo boxes
+        updateField(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
         gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
         gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
 
@@ -256,18 +269,6 @@ public class Tester
 
         new Thread(consoleUpdater).start();*/
 
-        try
-        {
-            preferences[I_WDIR] = new File(preferences[I_WDIR]).getCanonicalPath();
-            preferences[I_INDIR] = new File(preferences[I_INDIR]).getCanonicalPath();
-            preferences[I_OUTDIR] = new File(preferences[I_OUTDIR]).getCanonicalPath();
-            preferences[I_REFDIR] = new File(preferences[I_REFDIR]).getCanonicalPath();
-            preferences[I_TESTPATH] = new File(preferences[I_TESTPATH]).getCanonicalPath();
-        } catch(IOException e)
-        {
-            console.println("WARNING: One or more paths in preferences file cannot be canonized.");
-        }
-
         console.println("Window initialisation complete.");
     }
 
@@ -294,11 +295,6 @@ public class Tester
         }
 
         console.close();
-    }
-
-    public void printToConsole(String s)
-    {
-        console.println(s);
     }
 
 
@@ -332,8 +328,7 @@ public class Tester
                 if(s.equals(preferences[I_HWNUM])) return;
                 preferences[I_HWNUM] = s;
                 console.println("Preparing to run test cases for " + s + ".");
-                String[] defaultTest = TESTS[Integer.parseInt(
-                        preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 1))-2];
+                String[] defaultTest = TESTS[Integer.parseInt(s.substring(s.length() - 1))-2];
                 gui.setTestList(defaultTest);
                 updateField(Field.TEST_NAME, defaultTest[0]);
                 break;
