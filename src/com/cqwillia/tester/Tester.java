@@ -297,26 +297,6 @@ public class Tester
         console.println(s);
     }
 
-    public void runTest(String comm)
-    {
-        command = comm;
-
-        File inDir = new File(preferences[I_INDIR]);
-        File outDir = new File(preferences[I_OUTDIR]);
-
-        if(!outDir.exists())
-        {
-            if(!outDir.mkdirs())
-            {
-                console.println("ERROR: Specified output directory " + preferences[I_OUTDIR] + " does not exist " +
-                        "and cannot be created by the Java Virtual Machine. Please create it manually.");
-                return;
-            }
-        }
-
-        runCommands(comm, inDir, outDir);
-    }
-
 
     private void updateField(Field f, String s)
     {
@@ -604,76 +584,10 @@ public class Tester
         gui.setCommand(command);
     }
 
-    private void runCommands(String comm, File inDir, File outDir)
+    private void runCommands(String comm)
     {
         CommandBuilder.build(preferences, console);
-
-        /*try
-        {
-            ArrayList<String> valFailed = new ArrayList<>();
-            boolean valError = false;
-            Map<String, File> parsed = new HashMap<>();
-            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
-            Set<String> commands = parsed.keySet();
-            for(String c : commands)
-            {
-                String[] arguments = c.split(" ");
-                ProcessBuilder builder = new ProcessBuilder(arguments);
-                builder.directory(new File(preferences[I_WDIR]));
-                console.println("Conducting test " + c);
-                Process p = builder.start();
-                BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                BufferedReader consoleErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-                console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
-                BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
-                String consoleLine;
-                while((consoleLine = consoleIn.readLine()) != null)
-                {
-                    fileOut.write(consoleLine);
-                    fileOut.newLine();
-                }
-                fileOut.close();
-
-                console.println("Reading valgrind log");
-                String errLine;
-                while((errLine = consoleErr.readLine()) != null)
-                {
-                    if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
-                    {
-                        valError = true;
-                        console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
-                        valFailed.add(parsed.get(c).toString());
-                    }
-                }
-            }
-
-            console.println("Comparing outcomes between output file and reference solutions.");
-            TesterLogic.compareResults(outDir, new File(preferences[I_REFDIR]), console);
-            if(valError)
-            {
-                String valWarning = "WARNING: Valgrind errors detected in trials corresponding to output files ";
-                for(String s : valFailed)
-                {
-                    valWarning += s + ", ";
-                }
-                valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
-                console.println(valWarning);
-            }
-            else
-            {
-                console.println("No valgrind errors detected.");
-            }
-        }
-        catch(AngleExpressionException a)
-        {
-            console.println("ERROR: Syntax failure. " + a.getMessage());
-        }
-        catch(IOException e)
-        {
-            console.println("ERROR: Failed to create output file:");
-            e.printStackTrace(console);
-        }*/
+        CommandBuilder.run(preferences, comm, console);
     }
 
     private class TesterInterface extends JFrame
@@ -713,23 +627,6 @@ public class Tester
             getContentPane().add(scroll, scrollConstraints);
             DefaultCaret caret = (DefaultCaret) consoleWindow.getCaret();
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-
-            /*//construct the menuBar and menu items, then add them to the frame
-            JMenuBar menuBar = new JMenuBar();
-            JMenu fileMenu = new JMenu("File");
-            fileMenu.setMnemonic(KeyEvent.VK_F);
-            JMenuItem preferencesItem = new JMenuItem("Preferences");
-            preferencesItem.setMnemonic(KeyEvent.VK_P);
-            preferencesItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, ActionEvent.CTRL_MASK));
-            preferencesItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println("Preferences was clicked!");
-                }
-            });
-            fileMenu.add(preferencesItem);
-            menuBar.add(fileMenu);
-            setJMenuBar(menuBar);*/
 
             JPanel prefPanel = new JPanel();
             Border border = prefPanel.getBorder();
@@ -851,7 +748,7 @@ public class Tester
             saveCommand.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    runTest(commandField.getText());
+                    runCommands(commandField.getText());
                 }
             });
             execButPanel.setLayout(new FlowLayout(FlowLayout.CENTER));

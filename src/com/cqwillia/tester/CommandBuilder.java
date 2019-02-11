@@ -1,12 +1,12 @@
 package com.cqwillia.tester;
 
+import com.cqwillia.tester.exceptions.AngleExpressionException;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class CommandBuilder
 {
@@ -27,14 +27,7 @@ public final class CommandBuilder
      */
     public static void build(String[] prefs, PrintStream console)
     {
-        File[] inFiles = new File(prefs[Tester.I_INDIR]).listFiles();
         String thisDeps = dependencies.get(prefs[Tester.I_TESTNAME]);
-
-        if(inFiles == null)
-        {
-            /* HANDLE NO INPUT CASES HERE */
-            return;
-        }
 
         //If there is no script directory, create the script directory (this shouldn't happen...)
         String sep = System.getProperty("file.separator");
@@ -122,8 +115,86 @@ public final class CommandBuilder
         }
     }
 
-    public static void run()
+    public static void run(String[] prefs, String comm, PrintStream console)
     {
+        try
+        {
+            File inDir = new File(prefs[Tester.I_INDIR]);
+            File outDir = new File(prefs[Tester.I_OUTDIR]);
+
+            if(!outDir.exists())
+            {
+                if(!outDir.mkdirs())
+                {
+                    console.println("ERROR: Specified output directory " + prefs[Tester.I_OUTDIR] + " does not exist " +
+                            "and cannot be created by the Java Virtual Machine. Please create it manually.");
+                    return;
+                }
+            }
+
+            ArrayList<String> valFailed = new ArrayList<>();
+            boolean valError = false;
+            Map<String, File> parsed = new HashMap<>();
+            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(prefs[Tester.I_WDIR]));
+            Set<String> commands = parsed.keySet();
+            for(String c : commands)
+            {
+                String[] arguments = c.split(" ");
+                ProcessBuilder builder = new ProcessBuilder(arguments);
+                console.println("Conducting test " + c);
+                Process p = builder.start();
+                BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader consoleErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+                console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
+                BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
+                String consoleLine;
+                while((consoleLine = consoleIn.readLine()) != null)
+                {
+                    fileOut.write(consoleLine);
+                    fileOut.newLine();
+                }
+                fileOut.close();
+
+                console.println("Reading valgrind log");
+                String errLine;
+                while((errLine = consoleErr.readLine()) != null)
+                {
+                    if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
+                    {
+                        valError = true;
+                        console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
+                        valFailed.add(parsed.get(c).toString());
+                    }
+                }
+            }
+
+            console.println("Comparing outcomes between output file and reference solutions.");
+            TesterLogic.compareResults(outDir, new File(prefs[Tester.I_REFDIR]), console);
+            if(valError)
+            {
+                String valWarning = "WARNING: Valgrind errors detected in trials corresponding to output files ";
+                for(String s : valFailed)
+                {
+                    valWarning += s + ", ";
+                }
+                valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
+                console.println(valWarning);
+            }
+            else
+            {
+                console.println("No valgrind errors detected.");
+            }
+        }
+        catch(AngleExpressionException a)
+        {
+            console.println("ERROR: Syntax failure. " + a.getMessage());
+        }
+        catch(IOException e)
+        {
+            console.println("ERROR: Failed to create output file:");
+            e.printStackTrace(console);
+        }
     }
 
     public static String getExecPath(String testExec)
