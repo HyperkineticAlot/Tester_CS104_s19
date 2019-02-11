@@ -2,9 +2,9 @@
 
 **Author**: Cameron Williams
 
-**Version**: 0.0.2
+**Version**: 0.0.2.1
 
-**Release date**: 29 January 2019
+**Release date**: 11 February 2019
 
 Looking for help or to report a bug? Email me at cqwillia@usc.edu,
 post a comment on this repository, or reply to the latest Piazza thread!
@@ -56,3 +56,32 @@ the bottom of the Tester window to run the split test cases.
 
 This guide will be updated with more detailed information on how to customise
 Tester in the coming days (when it's not midnight).
+
+# 0.0.2.1 release notes
+
+The build associated with the 0.0.2.1 of the CS104 Tester adds multiple new
+functionalities.
+- Rather than relying on manual copy-pasting of the provided anchor script,
+Tester will now automatically detect and move .cpp and .h files necessary for
+execution of the tests into the scripts/src folder. Execution no longer relies
+solely on the command line, and the Tester now constructs and executes a
+Makefile to ensure the executable in use is up to date.
+- Switching between homeworks and tests using the dropdown menus in the
+interface is now fully functional, and will predictively update the paths
+of input/output/reference directories and the test script in the UI.
+-The Tester now includes Homework 3's `ulliststr_ops` test, which tests the 
+overloaded operators and copy constructors implemented in the ULListStr class
+with Homework 3. These tests and reference solutions are included in test/input/ulliststr_ops
+and test/ref/ulliststr_ops, and the anchor script is included in scripts/src.
+
+Furthermore, default preferences have been updated. If you'd like to run the newest
+ulliststr_ops test, simply run the two commands listed in the quick start guide
+above from the hw3/Tester_CS104_s19 directory:
+
+```
+javac src/com/cqwillia/tester/*.java src/com/cqwillia/tester/exceptions/*.java
+java -cp src com.cqwillia.tester.TestRunner
+```
+
+Then click the Save and Run button in the bottom panel, and the console
+will print out the results of the automated tests.
