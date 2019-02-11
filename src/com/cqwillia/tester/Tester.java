@@ -13,10 +13,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Cameron Williams
@@ -82,13 +79,13 @@ public class Tester
      * <code>I_TESTNAME</code> stores the index of the test name string within
      * <code>preferences</code>.
      */
-    private static final int I_WDIR = 0;
-    private static final int I_HWNUM = 1;
-    private static final int I_TESTNAME = 2;
-    private static final int I_INDIR = 3;
-    private static final int I_OUTDIR = 4;
-    private static final int I_REFDIR = 5;
-    private static final int I_TESTPATH = 6;
+    public static final int I_WDIR = 0;
+    public static final int I_HWNUM = 1;
+    public static final int I_TESTNAME = 2;
+    public static final int I_INDIR = 3;
+    public static final int I_OUTDIR = 4;
+    public static final int I_REFDIR = 5;
+    public static final int I_TESTPATH = 6;
 
     /**
      * These two <code>static final</code> fields store the default file names of
@@ -97,6 +94,9 @@ public class Tester
      */
     private static final String PREF_PATH = "d.PREFERENCES";
     private static final String LOG_PATH = "session.log";
+
+    private static final String[][] TESTS = { {"split_test", "ulliststr_test"},
+                                             {"ulliststr_ops_test"}};
 
     /**
      * Sole constructor. <code>Tester</code> objects require no constructor input,
@@ -163,6 +163,26 @@ public class Tester
             }
         }
 
+        //If the preferences file has been edited to create an illegal testName/homeworkNumber pairing,
+        //fix the inconsistency
+        int hwNum = Integer.parseInt(preferences[I_HWNUM].substring(preferences[I_HWNUM].length() - 1));
+        if(!Arrays.asList(TESTS[hwNum-2]).contains(preferences[I_TESTNAME]))
+        {
+            preferences[I_TESTNAME] = TESTS[hwNum-2][0];
+        }
+
+        try
+        {
+            preferences[I_WDIR] = new File(preferences[I_WDIR]).getCanonicalPath();
+            preferences[I_INDIR] = new File(preferences[I_INDIR]).getCanonicalPath();
+            preferences[I_OUTDIR] = new File(preferences[I_OUTDIR]).getCanonicalPath();
+            preferences[I_REFDIR] = new File(preferences[I_REFDIR]).getCanonicalPath();
+            preferences[I_TESTPATH] = new File(preferences[I_TESTPATH]).getCanonicalPath();
+        } catch(IOException e)
+        {
+            console.println("WARNING: One or more paths in preferences file cannot be canonized.");
+        }
+
         //initialise the gui
         try
         {
@@ -179,6 +199,12 @@ public class Tester
                 deinit();
             }
         });
+
+        //update fields to initialise gui combo boxes
+        String s = preferences[I_HWNUM];
+        gui.setTestList(TESTS[Integer.parseInt(s.substring(s.length() - 1))-2]);
+        gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
+        gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
 
         defaultCommand();
 
@@ -244,18 +270,6 @@ public class Tester
 
         new Thread(consoleUpdater).start();*/
 
-        try
-        {
-            preferences[I_WDIR] = new File(preferences[I_WDIR]).getCanonicalPath();
-            preferences[I_INDIR] = new File(preferences[I_INDIR]).getCanonicalPath();
-            preferences[I_OUTDIR] = new File(preferences[I_OUTDIR]).getCanonicalPath();
-            preferences[I_REFDIR] = new File(preferences[I_REFDIR]).getCanonicalPath();
-            preferences[I_TESTPATH] = new File(preferences[I_TESTPATH]).getCanonicalPath();
-        } catch(IOException e)
-        {
-            console.println("WARNING: One or more paths in preferences file cannot be canonized.");
-        }
-
         console.println("Window initialisation complete.");
     }
 
@@ -282,31 +296,6 @@ public class Tester
         }
 
         console.close();
-    }
-
-    public void printToConsole(String s)
-    {
-        console.println(s);
-    }
-
-    public void runTest(String comm)
-    {
-        command = comm;
-
-        File inDir = new File(preferences[I_INDIR]);
-        File outDir = new File(preferences[I_OUTDIR]);
-
-        if(!outDir.exists())
-        {
-            if(!outDir.mkdirs())
-            {
-                console.println("ERROR: Specified output directory " + preferences[I_OUTDIR] + " does not exist " +
-                        "and cannot be created by the Java Virtual Machine. Please create it manually.");
-                return;
-            }
-        }
-
-        runCommands(comm, inDir, outDir);
     }
 
 
@@ -339,13 +328,61 @@ public class Tester
             case HOMEWORK_NUM:
                 if(s.equals(preferences[I_HWNUM])) return;
                 preferences[I_HWNUM] = s;
-                console.println("Preparing to run test cases for " + s + ".");
+                String[] defaultTest = TESTS[Integer.parseInt(s.substring(s.length() - 1))-2];
+                gui.setTestList(defaultTest);
+                updateField(Field.TEST_NAME, defaultTest[0]);
                 break;
 
             case TEST_NAME:
                 if(s.equals(preferences[I_TESTNAME])) return;
                 preferences[I_TESTNAME] = s;
                 console.println("Preparing to run test cases for trial "+s+" from "+preferences[I_HWNUM]+".");
+
+                //check automated expectations for where input, output, reference directories and script path should lie
+                s = s.substring(0, s.length()-5);
+                File newInDir = new File(new File(preferences[I_INDIR]).getParentFile(), s);
+                if(newInDir.isDirectory())
+                {
+                    preferences[I_INDIR] = newInDir.getPath();
+                    console.println("Input directory updated to " + newInDir.getPath());
+                    gui.restore(Field.INPUT_DIR, newInDir.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected input directory " + newInDir.getPath() + " not found. Please" +
+                            " update the input directory manually.");
+                }
+
+                File newOutDir = new File(new File(preferences[I_OUTDIR]).getParentFile(), s);
+                updateField(Field.OUTPUT_DIR, newOutDir.getPath());
+
+                File newRefDir = new File(new File(preferences[I_REFDIR]).getParentFile(), s);
+                if(newRefDir.isDirectory())
+                {
+                    preferences[I_REFDIR] = newRefDir.getPath();
+                    console.println("Reference directory set to " + newRefDir.getPath());
+                    gui.restore(Field.REFERENCE_DIR, newRefDir.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected reference directory " + newRefDir.getPath() + " not found." +
+                            " Please update the reference directory manually.");
+                }
+
+                File newTestScript = new File(new File(preferences[I_TESTPATH]).getParentFile(), s + "_test.cpp");
+                if(newTestScript.isFile())
+                {
+                    preferences[I_TESTPATH] = newTestScript.getPath();
+                    console.println("Test script path set to " + newTestScript.getPath());
+                    gui.restore(Field.TEST_PATH, newTestScript.getPath());
+                }
+                else
+                {
+                    console.println("WARNING: Expected test script path " + newTestScript.getPath() + " not found. " +
+                            "Please update the test script path manually.");
+                }
+
+                defaultCommand();
                 break;
 
             case INPUT_DIR:
@@ -587,87 +624,17 @@ public class Tester
             return;
         }
 
-        try
-        {
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
-            String relativeTest = Paths.get(preferences[I_WDIR]).relativize(Paths.get(preferences[I_TESTPATH])).toString();
-            command += relativeTest.substring(0, relativeTest.length()-4);
-            command += " <input>";
-            gui.setCommand(command);
-        } catch(IllegalArgumentException e)
-        {
-            command = "valgrind --tool=memcheck --leak-check=yes ./";
-            System.out.println("Test script path could not be relativised against working directory.");
-            command += preferences[I_TESTPATH].substring(0, preferences[I_TESTPATH].length()-4);
-            command += " <input>";
-            gui.setCommand(command);
-        }
+        command = "valgrind --tool=memcheck --leak-check=yes ./";
+        String testFileName = new File(preferences[I_TESTPATH]).getName();
+        command += CommandBuilder.getExecPath(testFileName.substring(0, testFileName.length()-4));
+        command += " <input>";
+        gui.setCommand(command);
     }
 
-    private void runCommands(String comm, File inDir, File outDir)
+    private void runCommands(String comm)
     {
-        try
-        {
-            ArrayList<String> valFailed = new ArrayList<>();
-            boolean valError = false;
-            Map<String, File> parsed = new HashMap<>();
-            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(preferences[I_WDIR]));
-            Set<String> commands = parsed.keySet();
-            for(String c : commands)
-            {
-                String[] arguments = c.split(" ");
-                ProcessBuilder builder = new ProcessBuilder(arguments);
-                builder.directory(new File(preferences[I_WDIR]));
-                console.println("Conducting test " + c);
-                Process p = builder.start();
-                BufferedReader consoleIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                BufferedReader consoleErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-                console.println("Writing outcome of test to " + parsed.get(c).toPath().toString());
-                BufferedWriter fileOut = new BufferedWriter(new FileWriter(parsed.get(c)));
-                String consoleLine;
-                while((consoleLine = consoleIn.readLine()) != null)
-                {
-                    fileOut.write(consoleLine);
-                    fileOut.newLine();
-                }
-                fileOut.close();
-
-                console.println("Reading valgrind log");
-                String errLine;
-                while((errLine = consoleErr.readLine()) != null)
-                {
-                    if(errLine.contains("blocks are definitely lost") && !valFailed.contains(parsed.get(c).toString()))
-                    {
-                        valError = true;
-                        console.println("Valgrind error in trial corresponding to output file " + parsed.get(c));
-                        valFailed.add(parsed.get(c).toString());
-                    }
-                }
-            }
-
-            console.println("Comparing outcomes between output file and reference solutions.");
-            TesterLogic.compareResults(outDir, new File(preferences[I_REFDIR]), console);
-            if(valError)
-            {
-                String valWarning = "WARNING: Valgrind errors detected in trials corresponding to output files ";
-                for(String s : valFailed)
-                {
-                    valWarning += s + ", ";
-                }
-                valWarning = valWarning.substring(0, valWarning.length()-2) + ".";
-                console.println(valWarning);
-            }
-        }
-        catch(AngleExpressionException a)
-        {
-            console.println("ERROR: Syntax failure. " + a.getMessage());
-        }
-        catch(IOException e)
-        {
-            console.println("ERROR: Failed to create output file:");
-            e.printStackTrace(console);
-        }
+        CommandBuilder.build(preferences, console);
+        CommandBuilder.run(preferences, comm, console);
     }
 
     private class TesterInterface extends JFrame
@@ -708,23 +675,6 @@ public class Tester
             DefaultCaret caret = (DefaultCaret) consoleWindow.getCaret();
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
-            /*//construct the menuBar and menu items, then add them to the frame
-            JMenuBar menuBar = new JMenuBar();
-            JMenu fileMenu = new JMenu("File");
-            fileMenu.setMnemonic(KeyEvent.VK_F);
-            JMenuItem preferencesItem = new JMenuItem("Preferences");
-            preferencesItem.setMnemonic(KeyEvent.VK_P);
-            preferencesItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, ActionEvent.CTRL_MASK));
-            preferencesItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println("Preferences was clicked!");
-                }
-            });
-            fileMenu.add(preferencesItem);
-            menuBar.add(fileMenu);
-            setJMenuBar(menuBar);*/
-
             JPanel prefPanel = new JPanel();
             Border border = prefPanel.getBorder();
             Border bevel = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
@@ -747,7 +697,13 @@ public class Tester
 
             //initialise dropdown menus for homework and test name, and pin to mounting panels
             JPanel hwPanel = new JPanel();
-            hwNum = new JComboBox<>( new String[]{ "Homework 2" } );
+            hwNum = new JComboBox<>( new String[]{ "Homework 2", "Homework 3" } );
+            hwNum.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateField(Field.HOMEWORK_NUM, hwNum.getSelectedItem().toString());
+                }
+            });
             hwPanel.add(new JLabel("Homework number:"));
             hwPanel.add(hwNum);
             GridBagConstraints hwConstraints = new GridBagConstraints();
@@ -755,7 +711,7 @@ public class Tester
             prefPanel.add(hwPanel, hwConstraints);
 
             JPanel testPanel = new JPanel();
-            testName = new JComboBox<>( new String[]{"split", "ulliststr"});
+            testName = new JComboBox<>();
             testPanel.add(new JLabel("Test name:"));
             testPanel.add(testName);
             GridBagConstraints testConstraints = new GridBagConstraints();
@@ -802,7 +758,6 @@ public class Tester
                     updateField(Field.TEST_PATH, testPath.getText());
 
                     updateField(Field.HOMEWORK_NUM, (String) hwNum.getSelectedItem());
-                    updateField(Field.TEST_NAME, (String) testName.getSelectedItem());
 
                     defaultCommand();
                 }
@@ -840,7 +795,7 @@ public class Tester
             saveCommand.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    runTest(commandField.getText());
+                    runCommands(commandField.getText());
                 }
             });
             execButPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -878,12 +833,23 @@ public class Tester
                 case TEST_PATH:
                     testPath.setText(s);
                     break;
+                case HOMEWORK_NUM:
+                    hwNum.setSelectedItem(s);
+                    break;
+                case TEST_NAME:
+                    testName.setSelectedItem(s);
             }
         }
 
         protected void setCommand(String s)
         {
             commandField.setText(s);
+        }
+
+        protected void setTestList(String[] tests)
+        {
+            DefaultComboBoxModel<String> newModel = new DefaultComboBoxModel(tests);
+            testName.setModel(newModel);
         }
 
         private void setConstraints(GridBagConstraints c, int x, int y)

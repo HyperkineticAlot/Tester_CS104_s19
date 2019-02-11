@@ -1,0 +1,9 @@
+4
+
+list apples oranges lemons beers
+list green blue black purple red green
+list texture garment
+list whither whether who whom where how why
+
+concat 0 1 3
+print 3

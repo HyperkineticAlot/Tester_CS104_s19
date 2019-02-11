@@ -1,0 +1,9 @@
+2
+
+list this is some interesting material
+list this is some overwritten garbage
+
+copy 0 1
+
+print 0
+print 1
