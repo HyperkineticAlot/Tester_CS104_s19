@@ -845,6 +845,11 @@ public class Tester
                 case TEST_PATH:
                     testPath.setText(s);
                     break;
+                case HOMEWORK_NUM:
+                    hwNum.setSelectedItem(s);
+                    break;
+                case TEST_NAME:
+                    testName.setSelectedItem(s);
             }
         }
 
