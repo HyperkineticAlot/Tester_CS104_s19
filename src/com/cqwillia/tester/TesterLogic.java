@@ -11,8 +11,7 @@ final class TesterLogic {
 
     /* throws IOException when creating new output files */
     @SuppressWarnings("null") //null-checking is performed on inDir and outDir by Tester
-    static void parseCommand(String c, File inDir, File outDir, PrintStream console, Map<String, File> commands,
-                             Path workDir)
+    static void parseCommand(String c, File inDir, File outDir, PrintStream console, Map<String, File> commands)
             throws AngleExpressionException, IOException
     {
         File[] inFiles = inDir.listFiles();
@@ -30,10 +29,10 @@ final class TesterLogic {
                 File defOutput = new File(outDir + System.getProperty("file.separator") + "output_01.txt");
                 defOutput.createNewFile();
                 console.println("New output file output_01.txt generated for command without input file.");
-                commands.put(generateCommand(c, null, Paths.get(defOutput.getCanonicalPath()), workDir), defOutput);
+                commands.put(generateCommand(c, null, Paths.get(defOutput.getCanonicalPath())), defOutput);
                 return;
             }
-            commands.put(generateCommand(c, null, Paths.get(outFiles[0].getCanonicalPath()), workDir), outFiles[0]);
+            commands.put(generateCommand(c, null, Paths.get(outFiles[0].getCanonicalPath())), outFiles[0]);
         }
 
         //define new map subclasses to issue warnings when filenames with duplicate numbers are added
@@ -75,7 +74,7 @@ final class TesterLogic {
             if(outKeys.containsKey(nextKey)) {
                 try {
                     commands.put(generateCommand(c, Paths.get(nextInFile.getCanonicalPath()),
-                            Paths.get(nextOutFile.getCanonicalPath()), workDir), nextOutFile);
+                            Paths.get(nextOutFile.getCanonicalPath())), nextOutFile);
                 } catch (AngleExpressionException e) {
                     console.println(e.getMessage());
                     throw e;
@@ -94,7 +93,7 @@ final class TesterLogic {
                                 + inKeys.get(nextKey) + ".");
                         try{
                             commands.put(generateCommand(c, Paths.get(nextInFile.getCanonicalPath()),
-                                    Paths.get(file.getCanonicalPath()), workDir), file);
+                                    Paths.get(file.getCanonicalPath())), file);
                         }
                         catch(AngleExpressionException e)
                         {
@@ -115,7 +114,7 @@ final class TesterLogic {
         }
     }
 
-    private static String generateCommand(String c, Path ifile, Path ofile, Path workDir)
+    private static String generateCommand(String c, Path ifile, Path ofile)
             throws AngleExpressionException {
         StringBuilder command = new StringBuilder();
 
@@ -148,8 +147,9 @@ final class TesterLogic {
                 throw new UnpairedAngleException(UnpairedAngleException.UnpairType.OPENING);
             }
 
-            if(expr.toString().equals("input")) command.append(workDir.relativize(ifile));
-            else if(expr.toString().equals("output")) command.append(workDir.relativize(ofile));
+            Path userPath = Paths.get(System.getProperty("user.dir"));
+            if(expr.toString().equals("input")) command.append(userPath.relativize(ifile));
+            else if(expr.toString().equals("output")) command.append(userPath.relativize(ofile));
             else
             {
                 throw new InvalidContentsException();

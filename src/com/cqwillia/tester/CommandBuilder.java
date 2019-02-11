@@ -140,7 +140,7 @@ public final class CommandBuilder
             ArrayList<String> valFailed = new ArrayList<>();
             boolean valError = false;
             Map<String, File> parsed = new HashMap<>();
-            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed, Paths.get(prefs[Tester.I_WDIR]));
+            TesterLogic.parseCommand(comm, inDir, outDir, console, parsed);
             Set<String> commands = parsed.keySet();
             for(String c : commands)
             {
