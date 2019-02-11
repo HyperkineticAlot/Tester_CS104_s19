@@ -381,6 +381,8 @@ public class Tester
                     console.println("WARNING: Expected test script path " + newTestScript.getPath() + " not found. " +
                             "Please update the test script path manually.");
                 }
+
+                defaultCommand();
                 break;
 
             case INPUT_DIR:
