@@ -201,7 +201,8 @@ public class Tester
         });
 
         //update fields to initialise gui combo boxes
-        updateField(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
+        String s = preferences[I_HWNUM];
+        gui.setTestList(TESTS[Integer.parseInt(s.substring(s.length() - 1))-2];
         gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
         gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
 
