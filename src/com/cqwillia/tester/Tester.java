@@ -202,7 +202,7 @@ public class Tester
 
         //update fields to initialise gui combo boxes
         String s = preferences[I_HWNUM];
-        gui.setTestList(TESTS[Integer.parseInt(s.substring(s.length() - 1))-2];
+        gui.setTestList(TESTS[Integer.parseInt(s.substring(s.length() - 1))-2]);
         gui.restore(Field.HOMEWORK_NUM, preferences[I_HWNUM]);
         gui.restore(Field.TEST_NAME, preferences[I_TESTNAME]);
 
@@ -328,7 +328,6 @@ public class Tester
             case HOMEWORK_NUM:
                 if(s.equals(preferences[I_HWNUM])) return;
                 preferences[I_HWNUM] = s;
-                console.println("Preparing to run test cases for " + s + ".");
                 String[] defaultTest = TESTS[Integer.parseInt(s.substring(s.length() - 1))-2];
                 gui.setTestList(defaultTest);
                 updateField(Field.TEST_NAME, defaultTest[0]);
@@ -340,6 +339,7 @@ public class Tester
                 console.println("Preparing to run test cases for trial "+s+" from "+preferences[I_HWNUM]+".");
 
                 //check automated expectations for where input, output, reference directories and script path should lie
+                s = s.substring(0, s.length()-5);
                 File newInDir = new File(new File(preferences[I_INDIR]).getParentFile(), s);
                 if(newInDir.isDirectory())
                 {
@@ -379,7 +379,7 @@ public class Tester
                             " Please update the reference directory manually.");
                 }
 
-                File newTestScript = new File(new File(preferences[I_REFDIR]).getParentFile(), s + ".cpp");
+                File newTestScript = new File(new File(preferences[I_REFDIR]).getParentFile(), s + "_test.cpp");
                 if(newTestScript.isFile())
                 {
                     preferences[I_TESTPATH] = newTestScript.getPath();
