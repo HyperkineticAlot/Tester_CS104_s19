@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
 			int target, minus;
 			ss >> target >> minus;
 			bool illegal = target > curr;
-			if(!illegal) illegal = minus > (int)lists[target]->size();
 			if(!checkErr(ss, token, illegal))
 			{
 				deallocate(lists, curr);
